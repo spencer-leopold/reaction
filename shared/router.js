@@ -42,34 +42,47 @@ _.extend(ReactionRouter.prototype, MicroEvent, {
     return require(componentPath);
   },
 
-  ReactionRouter.prototype.getRouteBuilder = function() {
+  getRouteBuilder = function() {
     return require(this.options.paths.routes);
-  }
+  },
 
-  ReactionRouter.prototype.createReactRoute = function(path, attrs) {
-    var parentRoute = ReactRouter.createRoute({});
-    ReactRouter.createDefaultRoute({ parentRoute: parentRoute });
-    ReactRouter.createRoute({ parentRoute: parentRoute });
-
-    this.reactRoutes.push(parentRoute);
-  }
-
-  ReactionRouter.prototype.createHapiRoute = function(path, cb) {
-  }
-
-
-  ReactionRouter.prototype.buildRoutes = function() {
-    var routeBuilder = this.getRouteBuilder();
-    var routes = [];
-
-    function captureRoutes() {
-      routes.push(arguments);
-      this.trigger('route:add', parent)
+  createRoute = function() {
+    function route(options, callback) {
+      if (callback) {
+        var parentRoute = ReactRouter.createRoute(options);
+        callback.call(parentRoute, options);
+        this.reactRoutes.push(parentRoute);
+      }
+      else {
+        this.reactRoutes.push(ReactRouter.createRoute(options))
+      }
     }
 
-    routeBuilder(captureRoutes);
+    return {
+      get: function() {
+        route(arguments);
+        this.trigger('route:add', 'get', arguments);
+      },
+      post: function() {
+        route(arguments);
+        this.trigger('route:add', 'post', arguments);
+      }
+      put: function() {
+        route(arguments);
+        this.trigger('route:add', 'put', arguments);
+      }
+      delete: function() {
+        route(arguments);
+        this.trigger('route:add', 'delete', arguments);
+      }
+    }
+  },
 
-    return routes;
+  buildRoutes = function() {
+    var routeBuilder = this.getRouteBuilder();
+    routeBuilder(this.createRoute);
+
+    return this.reactRoutes;
   }
 })
 
