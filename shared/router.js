@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactRouter = require('react-router');
-// var Fetcher = require('./fetcher');
+var Fetcher = require('./fetcher');
 var MicroEvent = require('microevent');
 var _ = require('lodash');
 var isServer = (typeof window === 'undefined');
@@ -23,7 +23,7 @@ ReactionRouter.prototype._initOptions = function(options) {
   options.paths = _.defaults(options.paths, {
     entryPath: entryPath,
     routes: entryPath + '/routes',
-    componentsDir: entryPath + '/components'
+    componentsDir: entryPath + '/react/components'
   });
 
   this.options = options;
@@ -31,8 +31,8 @@ ReactionRouter.prototype._initOptions = function(options) {
 }
 
 ReactionRouter.prototype.getComponentPath = function(componentName) {
-  var componentDir = this.options.paths.componentDir;
-  return componentDir + '/' + componentName;
+  var componentsDir = this.options.paths.componentsDir;
+  return componentsDir + '/' + componentName;
 }
 
 ReactionRouter.prototype.loadComponent = function(componentName) {
@@ -46,25 +46,34 @@ ReactionRouter.prototype.getRouteBuilder = function() {
 
 ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
+  var componentsDir = this.options.paths.componentsDir;
   var routes = [];
   var that = this;
 
   function captureRoutes() {
     var args = _.toArray(arguments);
     var options = args[0] || {};
-    var route = ReactRouter.createRoute(options);
+    var route;
+
+    options.handler = require(componentsDir + '/' + options.handler);
     that.trigger('route:add', options);
+    route = options;
 
 
     // if we have multiple arguments
     // it means this is a parent
     if (args.length > 1) {
       var childRoutes = args.splice(1);
+
+      route = ReactRouter.createRoute(options);
+      routes.push(route);
+
       _.each(childRoutes, function(childRoute) {
         childRoute.parentRoute = route;
-        route.appendChild(childRoute)
+        ReactRouter.createRoute(childRoute);
+        // route.appendChild(childRoute)
       });
-      routes.push(route);
+
     }
 
     return route;
@@ -76,16 +85,15 @@ ReactionRouter.prototype.buildRoutes = function() {
   return routes;
 }
 
-ReactionRouter.prototype.start = function(replace) {
-  var that = this;
-
-  if (isServer) {
+ReactionRouter.prototype.start = function(routes, replace) {
+  if (!isServer) {
     window.onload = function() {
-      ReactRouter.run(this.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
+      ReactRouter.run(routes, ReactRouter.HistoryLocation, function (Handler, state) {
         // loadingEvents.emit('loadStart');
         that.fetcher.fetchData(state.routes, state.params).then(function(data) {
           // loadingEvents.emit('loadEnd');
-          React.render(Handler({ data: data }), replace);
+
+          React.render(React.createFactory(Handler)({ data: data }), document.body);
         });
       });
     }
