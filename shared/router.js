@@ -22,8 +22,8 @@ ReactionRouter.prototype._initOptions = function(options) {
 
   options.paths = _.defaults(options.paths, {
     entryPath: entryPath,
-    routes: entryPath + '/routes',
-    componentsDir: entryPath + '/react/components'
+    routes: entryPath + 'app/routes',
+    componentsDir: entryPath + 'app/react/components'
   });
 
   this.options = options;
@@ -87,8 +87,9 @@ ReactionRouter.prototype.buildRoutes = function() {
 
 ReactionRouter.prototype.start = function(routes, replace) {
   if (!isServer) {
+    var that = this;
     window.onload = function() {
-      ReactRouter.run(routes, ReactRouter.HistoryLocation, function (Handler, state) {
+      ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
         // loadingEvents.emit('loadStart');
         that.fetcher.fetchData(state.routes, state.params).then(function(data) {
           // loadingEvents.emit('loadEnd');
