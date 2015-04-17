@@ -16,7 +16,8 @@ exports.register = function (server, options, next) {
           // loadingEvents.emit('loadEnd');
           markup = React.renderToString(React.createFactory(Handler)({ data: data, routes: reactRoutes }));
 
-          reply('<!DOCTYPE html>'+markup).type('text/html');
+          reply.view('index', { body: markup })
+          // reply('<!DOCTYPE html>'+markup).type('text/html');
         });
       });
     }
