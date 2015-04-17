@@ -1,4 +1,5 @@
 var ReactionRouter = require('../shared/router');
+var ReactionServerHandler = require('./plugins/handler');
 var url = require('url');
 var _ = require('lodash');
 var MicroEvent = require('microevent');
@@ -38,6 +39,14 @@ ReactionRouter.prototype.addHapiRoute = function(options) {
       }
     });
   }
+}
+
+ReactionRouter.prototype.getHandler = function(options) {
+  this.server.app.fetcher = this.fetcher;
+  this.server.app.reactRoutes = this.routes;
+  // this.server.register({
+  //   register: ReactionServerHandler
+  // });
 }
 
 module.exports = ServerRouter;

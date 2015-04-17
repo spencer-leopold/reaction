@@ -1,8 +1,9 @@
 var React = require('react');
 var ReactRouter = require('react-router');
-var url = require('url');
-var _ = require('lodash');
+// var Fetcher = require('./fetcher');
 var MicroEvent = require('microevent');
+var _ = require('lodash');
+var isServer = (typeof window === 'undefined');
 
 function ReactionRouter(options) {
   this.routes = [];
@@ -26,6 +27,7 @@ ReactionRouter.prototype._initOptions = function(options) {
   });
 
   this.options = options;
+  this.fetcher = new Fetcher();
 }
 
 ReactionRouter.prototype.getComponentPath = function(componentName) {
@@ -69,8 +71,25 @@ ReactionRouter.prototype.buildRoutes = function() {
   }
 
   routeBuilder(captureRoutes);
+  this.routes = routes;
 
   return routes;
+}
+
+ReactionRouter.prototype.start = function(replace) {
+  var that = this;
+
+  if (isServer) {
+    window.onload = function() {
+      ReactRouter.run(this.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
+        // loadingEvents.emit('loadStart');
+        that.fetcher.fetchData(state.routes, state.params).then(function(data) {
+          // loadingEvents.emit('loadEnd');
+          React.render(Handler({ data: data }), replace);
+        });
+      });
+    }
+  }
 }
 
 module.exports = ReactionRouter;
