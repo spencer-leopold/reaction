@@ -48,6 +48,7 @@ ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
   var componentsDir = this.options.paths.componentsDir;
   var routes = [];
+  var mountPath = this.options.mountPath || '';
   var that = this;
 
   function captureRoutes() {
@@ -55,10 +56,20 @@ ReactionRouter.prototype.buildRoutes = function() {
     var options = args[0] || {};
     var route;
 
+    // Prefix React Router paths if a mountPath
+    // is set
+    if (options.path) {
+      if (options.path === '/') {
+        options.path = mountPath;
+      }
+      else {
+        options.path = mountPath + options.path;
+      }
+    }
+
     options.handler = require(componentsDir + '/' + options.handler);
     that.trigger('route:add', options);
     route = options;
-
 
     // if we have multiple arguments
     // it means this is a parent
@@ -71,15 +82,14 @@ ReactionRouter.prototype.buildRoutes = function() {
       _.each(childRoutes, function(childRoute) {
         childRoute.parentRoute = route;
         ReactRouter.createRoute(childRoute);
-        // route.appendChild(childRoute)
       });
-
     }
 
     return route;
   }
 
   routeBuilder(captureRoutes);
+
   this.routes = routes;
 
   return routes;
@@ -90,10 +100,7 @@ ReactionRouter.prototype.start = function(routes, replace) {
     var that = this;
     window.onload = function() {
       ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
-        // loadingEvents.emit('loadStart');
         that.fetcher.fetchData(state.routes, state.params).then(function(data) {
-          // loadingEvents.emit('loadEnd');
-
           React.render(React.createFactory(Handler)({ data: data }), document.body);
         });
       });
