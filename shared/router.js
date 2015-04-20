@@ -57,8 +57,8 @@ ReactionRouter.prototype.buildRoutes = function() {
     var route;
 
     // Prefix React Router paths if a mountPath
-    // is set
-    if (options.path) {
+    // is set and the react path is absolute
+    if (options.path && options.path.charAt(0) === '/') {
       if (options.path === '/') {
         options.path = mountPath;
       }
@@ -68,18 +68,26 @@ ReactionRouter.prototype.buildRoutes = function() {
     }
 
     options.handler = require(componentsDir + '/' + options.handler);
-    that.trigger('route:add', options);
     route = options;
+
+    // add route to server
+    that.trigger('route:add', options);
 
     // if we have multiple arguments
     // it means this is a parent
     if (args.length > 1) {
-      var childRoutes = args.splice(1);
+      var childRoutes = args.splice(1), child;
 
       route = ReactRouter.createRoute(options);
       routes.push(route);
 
       _.each(childRoutes, function(childRoute) {
+        // format route before adding to server
+        child = childRoute;
+        child.parentRoutePath = route.path;
+        that.trigger('route:add', child);
+
+        // add route to react
         childRoute.parentRoute = route;
         ReactRouter.createRoute(childRoute);
       });
@@ -95,7 +103,7 @@ ReactionRouter.prototype.buildRoutes = function() {
   return routes;
 }
 
-ReactionRouter.prototype.start = function(routes, replace) {
+ReactionRouter.prototype.start = function() {
   if (!isServer) {
     var that = this;
     window.onload = function() {
