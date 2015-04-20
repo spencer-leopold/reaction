@@ -1,13 +1,15 @@
-var Hapi = require('hapi');
-var Router = require('../shared/router');
+var Router = require('./router');
 
-function Server(options) {
-  options = options || {};
+function Server(options, serverInstance) {
+  this.server = serverInstance;
+  this.router = new Router(options, this.server);
+  this.router.bind('route:add', this.logit);
+  this.router.buildRoutes();
+  this.router.getHandler();
 }
 
-Server.prototype.createServer = function(options) {
+Server.prototype.logit = function(options) {
+  console.log('asdasd');
 }
 
-Server.prototype.attachPlugins = function() {
-}
-
+module.exports = Server;

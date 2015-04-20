@@ -11,8 +11,6 @@ function ServerRouter(options, hapiInstance) {
   this.bind('route:add', this.addHapiRoute);
 
   ReactionRouter.call(this, options);
-  this.buildRoutes();
-  this.getHandler();
 }
 
 /**
@@ -22,6 +20,7 @@ ServerRouter.prototype = Object.create(ReactionRouter.prototype);
 ServerRouter.prototype.constructor = ServerRouter;
 
 ReactionRouter.prototype.addHapiRoute = function(options) {
+  console.log('added hapi route');
   var path;
   var mountPath = this.options.mountPath
   options = options || {};
