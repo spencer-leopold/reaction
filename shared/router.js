@@ -47,10 +47,7 @@ ReactionRouter.prototype.getRouteBuilder = function() {
 
 ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
-  var componentsDir = this.options.paths.componentsDir;
   var routes = {};
-  var mountPath = this.options.mountPath || '';
-  var that = this;
 
   function captureRoutes(options, callback) {
     if (!callback) {
@@ -62,14 +59,15 @@ ReactionRouter.prototype.buildRoutes = function() {
       var children = routeNest.slice(1);
 
       // remove processed children from routes object
-      _.each(children, function(child) {
+      _.each(children, function(child, i) {
         if (child !== undefined) {
           delete routes[child.name];
         }
+        children[i].parent = parentRoute;
       });
 
       // add children as property to main route
-      parentRoute.children = children;
+      parentRoute.childRoutes = children;
       routes[parentRoute.name] = parentRoute;
     }
 
@@ -78,55 +76,95 @@ ReactionRouter.prototype.buildRoutes = function() {
 
   routeBuilder(captureRoutes);
 
-  // routes.forEach(this.addRouteDefinition, this);
-  return routes;
+  // Loop through routes object and add definitions
+  _.each(Object.keys(routes), function(route, i) {
+    this.addRouteDefinition(routes[route]);
+  }.bind(this));
+
+  return this.routes;
 }
 
 ReactionRouter.prototype.addRouteDefinition = function(route) {
-  console.log(route);
-  return false;
-  var args = route;
-  var options = args[0] || {};
-  var route;
+  var componentsDir = this.options.paths.componentsDir;
+  var mountPath = this.options.mountPath || '';
+  var that = this;
 
-  // Prefix React Router paths if a mountPath
-  // is set and the react path is absolute
-  if (options.path && options.path.charAt(0) === '/') {
-    if (options.path === '/') {
-      options.path = mountPath;
+  // recursive helper to run through routes and children
+  function checkChildRoutes(route, parent) {
+    var addToRoutes = true, reactRoute;
+
+    // Prefix React Router paths if a mountPath
+    // is set and the react path is absolute
+    if (route.path && route.path.charAt(0) === '/') {
+      if (route.path === '/') {
+        route.path = mountPath;
+      }
+      else {
+        route.path = mountPath + route.path;
+      }
     }
-    else {
-      options.path = mountPath + options.path;
+
+    that.trigger('route:add', route);
+
+    // Attach the React component, it's originally set as
+    // a string to prevent having to require all components
+    // in the routes.js file
+    route.handler = require(componentsDir + '/' + route.handler);
+
+    reactRoute = ReactRouter.createRoute(route);
+
+    // If route doesn't have a parent it's a top-level route,
+    // so we want to add it to the main routes array
+    if (route.parent) {
+      addToRoutes = false;
+    }
+
+    // If a parent is passed as an argument we
+    // need to append this route to it
+    if (parent) {
+      parent.appendChild(reactRoute);
+    }
+
+    // If the route has children, run the function again
+    // this time passing the current route as the `parent` parameter.
+    // This will repeat for as long as necessary until full nested route
+    // definition is built.
+    if (route.childRoutes) {
+      _.each(route.childRoutes, function(child) {
+          checkChildRoutes(child, reactRoute);
+      });
+    }
+
+    // If top-level route, add to our main routes array
+    if (addToRoutes) {
+      that.routes.push(reactRoute);
     }
   }
 
-  options.handler = require(componentsDir + '/' + options.handler);
-  route = options;
-
-  console.log(arguments);
+  checkChildRoutes(route);
+  // console.log(this.routes[0].childRoutes);
 
   // add route to server
-  that.trigger('route:add', options);
 
   // if we have multiple arguments
   // it means this is a parent
-  if (args.length > 1) {
-    var childRoutes = args.splice(1), child;
-
-    route = ReactRouter.createRoute(options);
-    routes.push(route);
-
-    _.each(childRoutes, function(childRoute) {
-      // format route before adding to server
-      child = childRoute;
-      child.parentRoutePath = route.path;
-      that.trigger('route:add', child);
-
-      // add route to react
-      childRoute.parentRoute = route;
-      ReactRouter.createRoute(childRoute);
-    });
-  }
+  // if (args.length > 1) {
+  //   var childRoutes = args.splice(1), child;
+  //
+  //   route = ReactRouter.createRoute(options);
+  //   routes.push(route);
+  //
+  //   _.each(childRoutes, function(childRoute) {
+  //     // format route before adding to server
+  //     child = childRoute;
+  //     child.parentRoutePath = route.path;
+  //     that.trigger('route:add', child);
+  //
+  //     // add route to react
+  //     childRoute.parentRoute = route;
+  //     ReactRouter.createRoute(childRoute);
+  //   });
+  // }
 
   return route;
 }
