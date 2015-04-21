@@ -20,7 +20,6 @@ ServerRouter.prototype = Object.create(ReactionRouter.prototype);
 ServerRouter.prototype.constructor = ServerRouter;
 
 ReactionRouter.prototype.addHapiRoute = function(options) {
-  console.log('added hapi route');
   var path;
   var mountPath = this.options.mountPath
   options = options || {};
@@ -39,7 +38,6 @@ ReactionRouter.prototype.addHapiRoute = function(options) {
         return false;
       }
     }
-
 
     // check path again after formatting
     if (this.serverRoutePaths.indexOf(path) === -1) {
