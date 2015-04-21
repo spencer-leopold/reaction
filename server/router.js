@@ -19,15 +19,12 @@ function ServerRouter(options, hapiInstance) {
 ServerRouter.prototype = Object.create(ReactionRouter.prototype);
 ServerRouter.prototype.constructor = ServerRouter;
 
-ReactionRouter.prototype.addHapiRoute = function(options) {
-  var path;
+ServerRouter.prototype.addHapiRoute = function(options) {
+  var path = '';
   var mountPath = this.options.mountPath
   options = options || {};
 
-
   if (options.path && this.serverRoutePaths.indexOf(options.path) === -1) {
-    var path = '';
-
     // Build absolute paths when React routes
     // are defined as relative and nested
     function buildPath(options) {
@@ -75,7 +72,7 @@ ReactionRouter.prototype.addHapiRoute = function(options) {
   }
 }
 
-ReactionRouter.prototype.getHandler = function() {
+ServerRouter.prototype.getHandler = function() {
   this.server.app.fetcher = this.fetcher;
   this.server.app.reactRoutes = this.routes;
   this.server.app.serverRoutePaths = this.serverRoutePaths;
