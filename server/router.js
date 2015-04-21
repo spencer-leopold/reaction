@@ -24,20 +24,35 @@ ReactionRouter.prototype.addHapiRoute = function(options) {
   var mountPath = this.options.mountPath
   options = options || {};
 
+
   if (options.path && this.serverRoutePaths.indexOf(options.path) === -1) {
-    path = options.path;
-    path = path.replace(/\:([^\/\s]*)/g, '{$1}');
+    var path = '';
+
+    // Build absolute paths when React routes
+    // are defined as relative and nested
+    function buildPath(options) {
+      if (path === '') {
+        path = options.path;
+      }
+      else {
+        path = options.path + '/' + path;
+      }
+
+      if (options.parent) {
+        buildPath(options.parent);
+      }
+    }
 
     // prepend parent route's path if route
     // is relative
-    if (path.charAt(0) !== '/') {
-      if (options.parentRoutePath) {
-        path = options.parentRoutePath + '/' + path;
-      }
-      else {
-        return false;
-      }
+    if (options.path.charAt(0) !== '/') {
+      buildPath(options);
     }
+    else {
+      path = options.path;
+    }
+
+    path = path.replace(/\:([^\/\s]*)/g, '{$1}');
 
     // check path again after formatting
     if (this.serverRoutePaths.indexOf(path) === -1) {
