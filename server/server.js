@@ -74,8 +74,7 @@ Server.prototype.getHandler = function() {
     if (serverRoutePaths.indexOf(request.route.path) >= 0) {
       ReactRouter.run(reactRoutes, request.path, function(Handler, state) {
         fetcher.fetchData(state.routes, state.params).then(function(data) {
-          // loadingEvents.emit('loadEnd');
-          markup = React.renderToString(React.createFactory(Handler)({ data: data, routes: reactRoutes }));
+          markup = React.renderToString(React.createFactory(Handler)({ data: data }));
           request.app.body = markup;
           reply.continue();
         });
