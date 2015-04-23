@@ -39,7 +39,8 @@ Server.prototype.addRoute = function(options) {
 
       if (!options.handle || (typeof options.handle !== 'function' && typeof options.handle !== 'object')) {
         handler = function(request, reply) {
-          reply.view('index', { body: request.app.body });
+          // @TODO: add option for XML appData
+          reply.view('index', { body: request.app.body, appData: { data: request.app.appData, path: request.path } });
         }
       }
       else {
@@ -75,7 +76,8 @@ Server.prototype.getHandler = function() {
       ReactRouter.run(reactRoutes, request.path, function(Handler, state) {
         fetcher.fetchData(state.routes, state.params).then(function(data) {
           markup = React.renderToString(React.createFactory(Handler)({ data: data }));
-          request.app.body = markup;
+          request.app.body = markup + 'server rendered';
+          request.app.appData = data;
           reply.continue();
         });
       });

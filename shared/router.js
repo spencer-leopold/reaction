@@ -174,41 +174,30 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
   }
 
   checkChildRoutes(route);
-  // console.log(this.routes[0].childRoutes);
-
-  // add route to server
-
-  // if we have multiple arguments
-  // it means this is a parent
-  // if (args.length > 1) {
-  //   var childRoutes = args.splice(1), child;
-  //
-  //   route = ReactRouter.createRoute(options);
-  //   routes.push(route);
-  //
-  //   _.each(childRoutes, function(childRoute) {
-  //     // format route before adding to server
-  //     child = childRoute;
-  //     child.parentRoutePath = route.path;
-  //     that.trigger('route:add', child);
-  //
-  //     // add route to react
-  //     childRoute.parentRoute = route;
-  //     ReactRouter.createRoute(childRoute);
-  //   });
-  // }
 
   return route;
 }
 
-ReactionRouter.prototype.start = function() {
+ReactionRouter.prototype.start = function(appData, el) {
+  console.log(el);
   if (!isServer) {
     var that = this;
+    if (!el) {
+      var el = document.body
+    }
+
+    console.log(el);
+
     window.onload = function() {
       ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
-        that.fetcher.fetchData(state.routes, state.params).then(function(data) {
-          React.render(React.createFactory(Handler)({ data: data }), document.body);
-        });
+        if (appData.path === state.path) {
+          React.render(React.createFactory(Handler)(appData), el);
+        }
+        else {
+          that.fetcher.fetchData(state.routes, state.params).then(function(data) {
+            React.render(React.createFactory(Handler)({ data: data }), el);
+          });
+        }
       });
     }
   }
