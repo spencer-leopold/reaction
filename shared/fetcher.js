@@ -1,4 +1,4 @@
-var Promise = require('bluebird');
+var Promise = require('q');
 
 function Fetcher() {
   this._cache = {};
