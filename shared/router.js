@@ -190,7 +190,7 @@ ReactionRouter.prototype.start = function(appData, el) {
           React.render(React.createFactory(Handler)(appData), el);
         }
         else {
-          var fetcher = Fetcher().getInstance();
+          var fetcher = Fetcher();
           fetcher.fetchData(state.routes, state.params).then(function(data) {
             React.render(React.createFactory(Handler)({ data: data }), el);
           });

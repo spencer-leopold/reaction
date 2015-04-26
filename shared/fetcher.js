@@ -35,7 +35,7 @@ METHODS.forEach(function(method) {
       url = host + url;
     }
 
-    if (this._cache[url]) {
+    if (method === 'get' && this._cache[url]) {
       return Promise.resolve(this._cache[url]);
     }
 
@@ -46,7 +46,10 @@ METHODS.forEach(function(method) {
         } else {
           var data = res.body;
           resolve(data);
-          that._cache[url] = data;
+
+          if (method === 'get') {
+            that._cache[url] = data;
+          }
         }
       });
     });
