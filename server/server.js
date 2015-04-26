@@ -1,6 +1,7 @@
 var Router = require('../shared/router');
 var React = require('react');
 var ReactRouter = require('react-router');
+var Fetcher = require('../shared/fetcher');
 var _ = require('lodash');
 
 function Server(options, serverInstance) {
@@ -11,11 +12,12 @@ function Server(options, serverInstance) {
   this.serverRoutesObj = [];
 
   this.server = server.select(options.appName);
+  this.fetcher = Fetcher(server.info);
 
   this.router = new Router(options);
   this.router.bind('route:add', this.addRoute, this);
-
   this.router.buildRoutes();
+
   this.getHandler();
 }
 
@@ -65,7 +67,7 @@ Server.prototype.addRoute = function(options) {
 }
 
 Server.prototype.getHandler = function() {
-  var fetcher = this.router.fetcher;
+  var fetcher = this.fetcher;
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
   var serverRoutesObj = this.serverRoutesObj;

@@ -28,7 +28,6 @@ ReactionRouter.prototype._initOptions = function(options) {
   });
 
   this.options = options;
-  this.fetcher = new Fetcher();
 }
 
 ReactionRouter.prototype.getComponentPath = function(componentName) {
@@ -179,14 +178,11 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 }
 
 ReactionRouter.prototype.start = function(appData, el) {
-  console.log(el);
   if (!isServer) {
     var that = this;
     if (!el) {
       var el = document.body
     }
-
-    console.log(el);
 
     window.onload = function() {
       ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
@@ -194,7 +190,8 @@ ReactionRouter.prototype.start = function(appData, el) {
           React.render(React.createFactory(Handler)(appData), el);
         }
         else {
-          that.fetcher.fetchData(state.routes, state.params).then(function(data) {
+          var fetcher = Fetcher().getInstance();
+          fetcher.fetchData(state.routes, state.params).then(function(data) {
             React.render(React.createFactory(Handler)({ data: data }), el);
           });
         }
