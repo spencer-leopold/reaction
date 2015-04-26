@@ -24,7 +24,7 @@ ReactionRouter.prototype._initOptions = function(options) {
   options.paths = _.defaults(options.paths, {
     entryPath: entryPath,
     routes: entryPath + 'app/routes',
-    componentsDir: entryPath + 'app/react/components'
+    componentsDir: entryPath + 'app/components'
   });
 
   this.options = options;
