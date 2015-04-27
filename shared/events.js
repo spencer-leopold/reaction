@@ -1,46 +1,74 @@
-/**
- * Modified version of MicroEvent (to add an execution context)
- * MicroEvent - to make any js object an event emitter (server or browser)
-*/
-
-var MicroEvent = function() {}
-MicroEvent.prototype = {
-	bind: function(event, fct, ctx){
-		this._events = this._events || {};
-		this._events[event] = this._events[event]	|| [];
-		if (!ctx) ctx = this;
-		this._events[event].push({ fn: fct, ctx: ctx });
-	},
-	unbind: function(event, fct){
-		this._events = this._events || {};
-		if( event in this._events === false  )	return;
-		this._events[event].splice(this._events[event].indexOf(fct), 1);
-	},
-	trigger: function(event /* , args... */){
-		this._events = this._events || {};
-		if( event in this._events === false  )	return;
-		for(var i = 0; i < this._events[event].length; i++){
-			var calledEvent = this._events[event][i];
-			var fn = calledEvent.fn;
-			var ctx = calledEvent.ctx;
-			fn.apply(ctx, Array.prototype.slice.call(arguments, 1))
-		}
-	}
-};
-
-/**
- * mixin will delegate all MicroEvent.js function in the destination object
- *
- * - require('MicroEvent').mixin(Foobar) will make Foobar able to use MicroEvent
- *
- * @param {Object} the object which will support MicroEvent
-*/
-MicroEvent.mixin	= function(destObject){
-	var props	= ['bind', 'unbind', 'trigger'];
-	for (var i = 0; i < props.length; i ++) {
-		destObject.prototype[props[i]] = MicroEvent.prototype[props[i]];
-	}
+function ScopedEvents() {
+  this._listeners = {};
 }
 
-// export in common js
-module.exports	= MicroEvent
+ScopedEvents.prototype.on = function(event, fn, ctx) {
+  this._listeners[event] = this._listeners[event] || [];
+
+  if (!ctx) {
+    ctx = this;
+  }
+
+  this._listeners[event].push({ fn: fn, ctx: ctx });
+}
+
+ScopedEvents.prototype.remove = function(event, fn) {
+  if (this._listeners[event] instanceof Array) {
+		this._listeners[event].splice(this._listeners[event].indexOf(fn), 1);
+  }
+}
+
+/*
+ * The trigger method triggers all scopes of an event.  So if you have an event
+ * binding to `route` and the event `route:add` is triggered, the binding for
+ * `route` is called as well as anything bound to `route:add`
+ */
+ScopedEvents.prototype.trigger = function(event) {
+  var evt = '';
+  var namespaces = event.split(':');
+  var namespaces_length = namespaces.length;
+
+  // trigger event and all parent scopes of event
+  for (var i = 0; i < namespaces_length; i++) {
+    var namespace = namespaces[i];
+
+    if (evt === '') {
+      evt = namespace;
+    }
+    else {
+      evt += ':'+namespace;
+    }
+
+    if (this._listeners[evt] instanceof Array) {
+      var listeners = this._listeners[evt];
+      var listeners_length = listeners.length;
+
+      for (var i = 0; i < listeners_length; i++) {
+        var listener = listeners[i];
+        var fn = listener.fn;
+        var ctx = listener.ctx;
+        fn.apply(ctx, Array.prototype.slice.call(arguments, 1))
+      }
+    }
+  }
+}
+
+var Dispatcher = (function() {
+  var instance;
+
+  function createInstance() {
+    return new ScopedEvents();
+  }
+ 
+  return {
+    getInstance: function () {
+      if (!instance) {
+        instance = createInstance();
+      }
+      return instance;
+    }
+  };
+
+})();
+
+module.exports = Dispatcher.getInstance();

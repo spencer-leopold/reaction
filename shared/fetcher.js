@@ -74,8 +74,7 @@ var F = (function() {
   var instance;
 
   function createInstance(options) {
-    var fetcher = new Fetcher(options);
-    return fetcher;
+    return new Fetcher(options);
   }
  
   return {

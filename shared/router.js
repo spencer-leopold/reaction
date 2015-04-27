@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var Fetcher = require('./fetcher');
-var MicroEvent = require('./events');
+var Events = require('./events');
 var _ = require('lodash');
 var isServer = (typeof window === 'undefined');
 var _currentRoute;
@@ -10,8 +10,6 @@ function ReactionRouter(options) {
   this.routes = [];
   this._initOptions(options);
 }
-
-MicroEvent.mixin(ReactionRouter);
 
 ReactionRouter.prototype._initOptions = function(options) {
   var entryPath;
@@ -147,7 +145,7 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
       reactRoute = ReactRouter.createRoute(route);
     }
 
-    that.trigger('route:add', route);
+    Events.trigger('route:add', route);
 
     // If route doesn't have a parent it's a top-level route,
     // so we want to add it to the main routes array
