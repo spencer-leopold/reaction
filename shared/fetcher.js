@@ -17,7 +17,9 @@ Fetcher.prototype.fetchData = function(routes, params) {
       return route.handler.fetchData;
     })
     .map(function(route) {
-      return route.handler.fetchData(params).then(function(d) {
+      return new Promise(function(resolve, reject) {
+        return route.handler.fetchData(resolve, params);
+      }).then(function(d) {
         return data[route.name] = d;
       });
     })
