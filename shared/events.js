@@ -1,8 +1,8 @@
-function ScopedEvents() {
+function EventDispatcher() {
   this._listeners = {};
 }
 
-ScopedEvents.prototype.on = function(event, fn, ctx) {
+EventDispatcher.prototype.on = function(event, fn, ctx) {
   this._listeners[event] = this._listeners[event] || [];
 
   if (!ctx) {
@@ -12,7 +12,7 @@ ScopedEvents.prototype.on = function(event, fn, ctx) {
   this._listeners[event].push({ fn: fn, ctx: ctx });
 }
 
-ScopedEvents.prototype.remove = function(event, fn) {
+EventDispatcher.prototype.remove = function(event, fn) {
   if (this._listeners[event] instanceof Array) {
 		this._listeners[event].splice(this._listeners[event].indexOf(fn), 1);
   }
@@ -23,7 +23,7 @@ ScopedEvents.prototype.remove = function(event, fn) {
  * binding to `route` and the event `route:add` is triggered, the binding for
  * `route` is called as well as anything bound to `route:add`
  */
-ScopedEvents.prototype.trigger = function(event) {
+EventDispatcher.prototype.trigger = function(event) {
   var evt = '';
   var namespaces = event.split(':');
   var namespaces_length = namespaces.length;
@@ -57,7 +57,7 @@ var Dispatcher = (function() {
   var instance;
 
   function createInstance() {
-    return new ScopedEvents();
+    return new EventDispatcher();
   }
  
   return {

@@ -23,7 +23,6 @@ function Server(options, serverInstance) {
 }
 
 Server.prototype.addRoute = function(options) {
-  console.log('adding Route');
   var path = '', handler;
   var mountPath = this.options.mountPath
   options = options || {};
