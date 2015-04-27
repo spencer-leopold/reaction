@@ -1,5 +1,5 @@
 var Promise = require('bluebird');
-var request = require('superagent');
+var Request = require('superagent');
 var isServer = (typeof window === 'undefined');
 
 var METHODS = ['get', 'post', 'put', 'patch', 'delete'];
@@ -27,8 +27,10 @@ Fetcher.prototype.fetchData = function(routes, params) {
 }
 
 METHODS.forEach(function(method) {
-  Fetcher.prototype[method] = function(url) {
+  Fetcher.prototype[method] = function(url, data, headers) {
     var that = this;
+    var request;
+
     if (isServer && url.charAt(0) === '/') {
       options = this.options;
       var host = options.protocol + '://' + options.host + ':' +options.port;
@@ -40,7 +42,17 @@ METHODS.forEach(function(method) {
     }
 
     return new Promise(function(resolve, reject) {
-      request[method](url).end(function(err, res) {
+      request = Request[method](url);
+
+      if (data && typeof data === 'object') {
+        request.send(data);
+      }
+
+      if (headers && typeof headers === 'object') {
+        request.set(headers);
+      }
+
+      request.end(function(err, res) {
         if (res.status === 404) {
           reject(new Error('not found'));
         } else {
@@ -55,15 +67,6 @@ METHODS.forEach(function(method) {
     });
   }
 });
-
-Fetcher.prototype.fetch = function(options) {
-  if (typeof options === 'string') {
-    return this.get(options);
-  }
-
-  var method = options.method || 'get';
-  return this[method](options.url);
-}
 
 var F = (function() {
   var instance;
