@@ -20,9 +20,11 @@ describe('shared/events', function() {
         Events.remove('test');
       });
 
-      it('should create a new listener', function() {
+      it('should create one listener per original event', function() {
         Events.on('test', fnSpy);
         expect(Events._listeners).to.have.a.property('test');
+        expect(Object.keys(Events._listeners).length).to.equal(1);
+        Events.on('test', fnSpy);
         expect(Object.keys(Events._listeners).length).to.equal(1);
       });
 
@@ -39,12 +41,18 @@ describe('shared/events', function() {
     });
 
     describe('#remove()', function() {
-      it('should remove a listener', function() {
+      it('should remove an exact event listener', function() {
+      });
+
+      it('should remove all listeners under certain event', function() {
       });
     });
 
     describe('#trigger()', function() {
-      it('should call all listening events', function() {
+      it('should call exact event', function() {
+      });
+
+      it('should call all parent events', function() {
       });
     });
   });

@@ -13,8 +13,15 @@ EventDispatcher.prototype.on = function(event, fn, ctx) {
 }
 
 EventDispatcher.prototype.remove = function(event, fn) {
+  // If a fn is passed in, remove that exact listener.
+  // If not, remove all listeners under that event
   if (this._listeners[event] instanceof Array) {
-		this._listeners[event].splice(this._listeners[event].indexOf(fn), 1);
+    if (fn) {
+      this._listeners[event].splice(this._listeners[event].indexOf(fn), 1);
+    }
+    else {
+      delete this._listeners[event];
+    }
   }
 }
 
