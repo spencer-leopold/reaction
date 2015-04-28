@@ -15,8 +15,9 @@ function Server(options, serverInstance) {
   this.server = server.select(options.appName);
   this.fetcher = Fetcher(server.info);
 
-  this.router = new Router(options);
   Events.on('route:add', this.addRoute, this);
+
+  this.router = new Router(options);
   this.router.buildRoutes();
 
   this.getHandler();

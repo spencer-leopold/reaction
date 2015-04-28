@@ -38,7 +38,6 @@ ReactionRouter.prototype.loadComponent = function(componentName) {
   return require(componentPath);
 }
 
-// @TODO: Support multiple route files
 ReactionRouter.prototype.getRouteBuilder = function() {
   return require(this.options.paths.routes);
 }

@@ -70,6 +70,17 @@ METHODS.forEach(function(method) {
   }
 });
 
+/*
+ * We need to use the Singleton pattern, otherwise
+ * when using relative paths in react, the initial
+ * page load will fail since the server information
+ * (host, port, etc) won't be availble. To get around
+ * this we pass in the server info when Fetcher is
+ * used in server/server.  Everywhere else that uses
+ * the fetcher when rendered on the server will then have
+ * the information needed.  One the client it's used
+ * without and options passed in.
+ */
 var F = (function() {
   var instance;
 

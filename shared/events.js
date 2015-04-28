@@ -60,22 +60,4 @@ EventDispatcher.prototype.trigger = function(event) {
   }
 }
 
-var Dispatcher = (function() {
-  var instance;
-
-  function createInstance() {
-    return new EventDispatcher();
-  }
- 
-  return {
-    getInstance: function () {
-      if (!instance) {
-        instance = createInstance();
-      }
-      return instance;
-    }
-  };
-
-})();
-
-module.exports = Dispatcher.getInstance();
+module.exports = new EventDispatcher();
