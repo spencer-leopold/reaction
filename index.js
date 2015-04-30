@@ -3,7 +3,7 @@ if (!this.window) {
 
   exports.Server = Server
 
-  exports.createServer = function(options, serverInstance) {
+  exports.attachApp = function(options, serverInstance) {
     return new Server(options, serverInstance);
   };
 }

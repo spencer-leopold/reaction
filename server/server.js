@@ -8,12 +8,19 @@ var _ = require('lodash');
 function Server(options, serverInstance) {
   // @TODO: Add some error checking for options
   this.options = options || {};
-  var server = serverInstance.connection({ port: options.port, labels: options.appName });
   this.serverRoutePaths = [];
   this.serverRoutesObj = [];
 
-  this.server = server.select(options.appName);
-  this.fetcher = Fetcher(server.info);
+  if (!options.appName && !options.mountPath) {
+    this.server = serverInstance;
+  }
+  else {
+    var serverName = (options.appName) ? options.appName : options.mountPath.replace(/^\//, '');
+    var server = serverInstance.connection({ port: options.port, labels: serverName });
+    this.server = server.select(serverName);
+  }
+
+  this.fetcher = Fetcher(this.server.info);
 
   Events.on('route:add', this.addRoute, this);
 
