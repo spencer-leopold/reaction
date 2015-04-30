@@ -20,13 +20,16 @@ function Server(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
-  this.fetcher = Fetcher(this.server.info);
-
+  // Listen for new routes and parse them for Hapi
   Events.on('route:add', this.addRoute, this);
 
+  // Attach the router and trigger all routes to be built
   this.router = new Router(options);
   this.router.buildRoutes();
 
+  // register our main route handler, this will run before
+  // all user defined route handlers so the server reply can be
+  // overriden
   this.getHandler();
 }
 
@@ -76,11 +79,11 @@ Server.prototype.addRoute = function(options) {
 }
 
 Server.prototype.getHandler = function() {
-  var fetcher = this.fetcher;
+  // Add our fetcher to be used in getHandler
+  var fetcher = Fetcher(this.server.info);
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
-  var serverRoutesObj = this.serverRoutesObj;
-  var that = this;
+  // var serverRoutesObj = this.serverRoutesObj;
 
   this.server.ext('onPreHandler', function(request, reply) {
     if (serverRoutePaths.indexOf(request.route.path) >= 0) {
