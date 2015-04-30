@@ -17,11 +17,14 @@ Fetcher.prototype.fetchData = function(routes, params) {
       return route.handler.fetchData;
     })
     .map(function(route) {
-      return new Promise(function(resolve, reject) {
-        return route.handler.fetchData(params, resolve, reject);
-      }).then(function(d) {
+      return route.handler.fetchData(params).then(function(d) {
         return data[route.name] = d;
       });
+      // return new Promise(function(resolve, reject) {
+      //   return route.handler.fetchData(params, resolve, reject);
+      // }).then(function(d) {
+      //   return data[route.name] = d;
+      // });
     })
   ).then(function() {
     return data;
