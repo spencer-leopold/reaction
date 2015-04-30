@@ -86,18 +86,22 @@ Server.prototype.getHandler = function() {
   // var serverRoutesObj = this.serverRoutesObj;
 
   this.server.ext('onPreHandler', function(request, reply) {
-    if (serverRoutePaths.indexOf(request.route.path) >= 0) {
+    // Make sure we're calling the ReactRouter on an actual react path,
+    // not an asset path or some other resource
+    if (serverRoutePaths.indexOf(request.route.path) === -1) {
+      reply.continue();
+    }
+    else {
       ReactRouter.run(reactRoutes, request.path, function(Handler, state) {
         fetcher.fetchData(state.routes, state.params).then(function(data) {
           markup = React.renderToString(React.createFactory(Handler)({ data: data }));
-          request.app.body = markup + 'server rendered';
+          // attach the markup and initial data to the
+          // request object to be used with templates
+          request.app.body = markup;
           request.app.appData = data;
           reply.continue();
         });
       });
-    }
-    else {
-      reply.continue();
     }
   });
 
