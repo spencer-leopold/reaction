@@ -17,7 +17,15 @@ EventDispatcher.prototype.remove = function(event, fn) {
   // If not, remove all listeners under that event
   if (this._listeners[event] instanceof Array) {
     if (fn) {
-      this._listeners[event].splice(this._listeners[event].indexOf(fn), 1);
+      var indexes = this._listeners[event].map(function(obj, idx) {
+        if (obj.fn === fn) {
+          return idx;
+        }
+      }).filter(isFinite);
+
+      for (var i = 0; i < indexes.length; i++) {
+        this._listeners[event].splice(i, 1);
+      }
     }
     else {
       delete this._listeners[event];
@@ -50,8 +58,8 @@ EventDispatcher.prototype.trigger = function(event) {
       var listeners = this._listeners[evt];
       var listeners_length = listeners.length;
 
-      for (var i = 0; i < listeners_length; i++) {
-        var listener = listeners[i];
+      for (var j = 0; j < listeners_length; j++) {
+        var listener = listeners[j];
         var fn = listener.fn;
         var ctx = listener.ctx;
         fn.apply(ctx, Array.prototype.slice.call(arguments, 1))
