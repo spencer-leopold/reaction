@@ -20,6 +20,8 @@ function Server(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
+  this.fetcher = Fetcher(this.server.info);
+
   // Listen for new routes and parse them for Hapi
   Events.on('route:add', this.addRoute, this);
 
@@ -80,7 +82,7 @@ Server.prototype.addRoute = function(options) {
 
 Server.prototype.getHandler = function() {
   // Add our fetcher to be used in getHandler
-  var fetcher = Fetcher(this.server.info);
+  var fetcher = this.fetcher;
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
   // var serverRoutesObj = this.serverRoutesObj;
