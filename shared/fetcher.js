@@ -2,11 +2,15 @@ var Promise = require('bluebird');
 var Request = require('superagent');
 var isServer = (typeof window === 'undefined');
 
-var METHODS = ['get', 'post', 'put', 'patch', 'delete'];
+var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
 
-function Fetcher(options) {
-  this.options = options || {};
+function Fetcher() {
+  this.baseUrl = '';
   this._cache = {};
+}
+
+Fetcher.prototype.setBaseUrl = function(options) {
+  this.baseUrl = options.protocol + '://' + options.host + ':' +options.port;
 }
 
 Fetcher.prototype.fetchData = function(routes, params) {
@@ -37,9 +41,7 @@ METHODS.forEach(function(method) {
     var request;
 
     if (isServer && url.charAt(0) === '/') {
-      options = this.options;
-      var host = options.protocol + '://' + options.host + ':' +options.port;
-      url = host + url;
+      url = this.baseUrl + url;
     }
 
     if (method === 'get' && this._cache[url]) {
@@ -73,35 +75,4 @@ METHODS.forEach(function(method) {
   }
 });
 
-/*
- * We need to use the Singleton pattern, otherwise
- * when using relative paths in react, the initial
- * page load will fail since the server information
- * (host, port, etc) won't be availble. To get around
- * this we pass in the server info when Fetcher is
- * used in server/server.  Everywhere else that uses
- * the fetcher when rendered on the server will then have
- * the information needed.  One the client it's used
- * without and options passed in.
- */
-var F = (function() {
-  var instance;
-
-  function createInstance(options) {
-    return new Fetcher(options);
-  }
- 
-  return {
-    getInstance: function (options) {
-      if (!instance) {
-        instance = createInstance(options);
-      }
-      return instance;
-    }
-  };
-
-})();
-
-module.exports = function(options) {
-  return F.getInstance(options);
-}
+module.exports = new Fetcher();

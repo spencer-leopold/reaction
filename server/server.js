@@ -20,7 +20,10 @@ function Server(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
-  this.fetcher = Fetcher(this.server.info);
+  this.fetcher = Fetcher;
+  // need to set the baseUrl, otherwise fetching relative paths
+  // fail on initial page load
+  this.fetcher.setBaseUrl(this.server.info);
 
   // Listen for new routes and parse them for Hapi
   Events.on('route:add', this.addRoute, this);
