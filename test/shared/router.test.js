@@ -32,22 +32,22 @@ describe('shared/router', function() {
   });
 
   describe('router instance', function() {
+    var router;
+
     beforeEach(function() {
-      var router = new Router({ entryPath: 'TestApp' });
-    });
-
-    describe('#_initOptions()', function() {
-      it('should set option paths', function() {
-      });
-
-      it('should fallback to defaults', function() {
-      });
+      router = new Router({ entryPath: 'TestApp/' });
     });
 
     describe('#getComponentPath()', function() {
+      it('should return correct component path', function() {
+        var path = router.getComponentPath('App');
+        path.should.be.equal('TestApp/app/components/App');
+      });
     });
 
     describe('#loadComponent()', function() {
+      it('should load the component', function() {
+      });
     });
 
     describe('#getRouteBuilder()', function() {
