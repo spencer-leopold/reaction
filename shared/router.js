@@ -184,7 +184,7 @@ ReactionRouter.prototype.start = function(appData, el) {
 
     window.onload = function() {
       ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
-        if (appData.path === state.path) {
+        if (appData && typeof appData === 'object' && appData.path === state.path) {
           React.render(React.createFactory(Handler)(appData), el);
         }
         else {
