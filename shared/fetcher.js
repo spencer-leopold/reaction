@@ -1,5 +1,6 @@
 var Promise = require('bluebird');
 var Request = require('superagent');
+var _ = require('lodash');
 var isServer = (typeof window === 'undefined');
 
 var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
@@ -7,10 +8,15 @@ var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
 function Fetcher() {
   this.baseUrl = '';
   this._cache = {};
+  this.headers = {};
 }
 
 Fetcher.prototype.setBaseUrl = function(options) {
   this.baseUrl = options.protocol + '://' + options.host + ':' +options.port;
+}
+
+Fetcher.prototype.setHeaderValue = function(key, val) {
+  this.headers[key] = val;
 }
 
 Fetcher.prototype.fetchData = function(routes, params) {
@@ -56,7 +62,13 @@ METHODS.forEach(function(method) {
       }
 
       if (headers && typeof headers === 'object') {
-        request.set(headers);
+        var allHeaders = _.extend({}, that.headers, headers);
+        request.set(allHeaders);
+      }
+      else {
+        if (that.headers) {
+          request.set(that.headers);
+        }
       }
 
       request.end(function(err, res) {

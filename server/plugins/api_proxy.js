@@ -5,6 +5,8 @@ exports.register = function(server, options, next) {
       host: options.host,
       port: options.port,
       protocol: options.protocol,
+      passThrough: true,
+      xforward: true,
       onResponse: function(err, res, request, reply, settings, ttl) {
         reply(res);
       }
