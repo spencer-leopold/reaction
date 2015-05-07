@@ -4,11 +4,6 @@ function EventDispatcher() {
 
 EventDispatcher.prototype.on = function(event, fn, ctx) {
   this._listeners[event] = this._listeners[event] || [];
-
-  if (!ctx) {
-    ctx = this;
-  }
-
   this._listeners[event].push({ fn: fn, ctx: ctx });
 }
 
@@ -60,9 +55,7 @@ EventDispatcher.prototype.trigger = function(event) {
 
       for (var j = 0; j < listeners_length; j++) {
         var listener = listeners[j];
-        var fn = listener.fn;
-        var ctx = listener.ctx;
-        fn.apply(ctx, Array.prototype.slice.call(arguments, 1))
+        listener.fn.apply(listener.ctx || this, Array.prototype.slice.call(arguments, 1))
       }
     }
   }
