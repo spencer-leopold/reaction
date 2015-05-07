@@ -61,4 +61,12 @@ EventDispatcher.prototype.trigger = function(event) {
   }
 }
 
+EventDispatcher.prototype.mixin = function(Constructor) {
+  var methods = ['on', 'remove', 'trigger'];
+
+  for (var i = 0; i < methods.length; i++) {
+    Constructor.prototype[method[i]] = this[method[i]];
+  }
+}
+
 module.exports = new EventDispatcher();
