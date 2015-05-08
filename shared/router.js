@@ -54,13 +54,13 @@ ReactionRouter.prototype.buildRoutes = function() {
 
 
   // @TODO: get components working
-  var test = require(this.options.paths.componentsDir+'/App');
-  var components = test.components();
-  var routes = components._store.props.children;
-  _.forEach(routes, function(route) {
-    var props = route._store.props;
-    Events.trigger('route:add', props, 'component');
-  });
+  // var test = require(this.options.paths.componentsDir+'/App');
+  // var components = test.components();
+  // var routes = components._store.props.children;
+  // _.forEach(routes, function(route) {
+  //   var props = route._store.props;
+  //   Events.trigger('route:add', props, 'component');
+  // });
 
 
 

@@ -47,7 +47,6 @@ Server.prototype.addRoute = function(options, component) {
     path = options.path;
     path = path.replace(/\:([^\/\s]*)/g, '{$1}');
 
-    console.log(this.serverRoutePaths);
     // check path again after formatting
     if (this.serverRoutePaths.indexOf(path) === -1) {
       // Only add to route paths if it's also
