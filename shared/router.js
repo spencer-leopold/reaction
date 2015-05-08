@@ -5,6 +5,7 @@ var React = require('react');
 var ReactRouter = require('react-router');
 var Fetcher = require('./fetcher');
 var Events = require('./events');
+var ReactTools = require('react-tools');
 var _ = require('lodash');
 var isServer = (typeof window === 'undefined');
 var _currentRoute;
@@ -49,6 +50,21 @@ ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
   var mountPath = this.options.mountPath || '';
   var routes = {}, path;
+
+
+
+  // @TODO: get components working
+  var test = require(this.options.paths.componentsDir+'/App');
+  var components = test.components();
+  var routes = components._store.props.children;
+  _.forEach(routes, function(route) {
+    var props = route._store.props;
+    Events.trigger('route:add', props, 'component');
+  });
+
+
+
+
 
   function captureRoutes(options, callback) {
     // Prefix React Router paths if a mountPath

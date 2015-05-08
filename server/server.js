@@ -38,7 +38,7 @@ function Server(options, serverInstance) {
   this.getHandler();
 }
 
-Server.prototype.addRoute = function(options) {
+Server.prototype.addRoute = function(options, component) {
   var path = '', handler;
   var mountPath = this.options.mountPath
   options = options || {};
@@ -47,12 +47,13 @@ Server.prototype.addRoute = function(options) {
     path = options.path;
     path = path.replace(/\:([^\/\s]*)/g, '{$1}');
 
+    console.log(this.serverRoutePaths);
     // check path again after formatting
     if (this.serverRoutePaths.indexOf(path) === -1) {
       // Only add to route paths if it's also
       // a react route.  Need this otherwise
       // asset paths are picked up in getHandler
-      if (options.name) {
+      if (options.name || component) {
         this.serverRoutePaths.push(path);
       }
 
