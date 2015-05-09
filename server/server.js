@@ -1,7 +1,7 @@
 var Router = require('../shared/router');
-var React = require('react');
-var ReactRouter = require('react-router');
-var Fetcher = require('../shared/fetcher');
+// var React = require('react');
+// var ReactRouter = require('react-router');
+// var Fetcher = require('../shared/fetcher');
 var Events = require('../shared/events');
 var _ = require('lodash');
 
@@ -20,10 +20,10 @@ function Server(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
-  this.fetcher = Fetcher;
+  // this.fetcher = Fetcher;
   // need to set the baseUrl, otherwise fetching relative paths
   // fail on initial page load
-  this.fetcher.setBaseUrl(this.server.info);
+  // this.fetcher.setBaseUrl(this.server.info);
 
   // Listen for new routes and parse them for Hapi
   Events.on('route:add', this.addRoute, this);
@@ -35,7 +35,7 @@ function Server(options, serverInstance) {
   // register our main route handler, this will run before
   // all user defined route handlers so the server reply can be
   // overriden
-  this.getHandler();
+  this.attachPlugins();
 }
 
 Server.prototype.addRoute = function(options, component) {
@@ -83,32 +83,44 @@ Server.prototype.addRoute = function(options, component) {
   }
 }
 
-Server.prototype.getHandler = function() {
+Server.prototype.attachPlugins = function() {
   // Add our fetcher to be used in getHandler
-  var fetcher = this.fetcher;
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
-  // var serverRoutesObj = this.serverRoutesObj;
 
-  this.server.ext('onPreHandler', function(request, reply) {
-    // Make sure we're calling the ReactRouter on an actual react path,
-    // not an asset path or some other resource
-    if (serverRoutePaths.indexOf(request.route.path) === -1) {
-      reply.continue();
+  this.server.register({
+    register: require('./plugins/isoApp'),
+    options: {
+      reactRoutes: reactRoutes,
+      serverRoutePaths: serverRoutePaths
     }
-    else {
-      ReactRouter.run(reactRoutes, request.path, function(Handler, state) {
-        fetcher.fetchData(state.routes, state.params).then(function(data) {
-          markup = React.renderToString(React.createFactory(Handler)({ data: data }));
-          // attach the markup and initial data to the
-          // request object to be used with templates
-          request.app.body = markup;
-          request.app.appData = data;
-          reply.continue();
-        });
-      });
+  }, function(err) {
+    if (err) {
+      console.log(err);
     }
   });
+
+  // var serverRoutesObj = this.serverRoutesObj;
+
+  // this.server.ext('onPreHandler', function(request, reply) {
+  //   // Make sure we're calling the ReactRouter on an actual react path,
+  //   // not an asset path or some other resource
+  //   if (serverRoutePaths.indexOf(request.route.path) === -1) {
+  //     reply.continue();
+  //   }
+  //   else {
+  //     ReactRouter.run(reactRoutes, request.path, function(Handler, state) {
+  //       fetcher.fetchData(state.routes, state.params).then(function(data) {
+  //         markup = React.renderToString(React.createFactory(Handler)({ data: data }));
+  //         // attach the markup and initial data to the
+  //         // request object to be used with templates
+  //         request.app.body = markup;
+  //         request.app.appData = data;
+  //         reply.continue();
+  //       });
+  //     });
+  //   }
+  // });
 
   //
   //
