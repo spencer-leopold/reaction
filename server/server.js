@@ -9,7 +9,7 @@ function Server(options, serverInstance) {
   // @TODO: Add some error checking for options
   this.options = options || {};
   this.serverRoutePaths = [];
-  this.serverRoutesObj = [];
+  this.serverRoutesObj = {};
 
   if (!options.appName && !options.mountPath) {
     this.server = serverInstance;
@@ -43,42 +43,52 @@ Server.prototype.addRoute = function(options, component) {
   var mountPath = this.options.mountPath
   options = options || {};
 
-  if (options.path && this.serverRoutePaths.indexOf(options.path) === -1) {
+  if (options.path) {
     path = options.path;
     path = path.replace(/\:([^\/\s]*)/g, '{$1}');
 
-    // check path again after formatting
-    if (this.serverRoutePaths.indexOf(path) === -1) {
-      // Only add to route paths if it's also
-      // a react route.  Need this otherwise
-      // asset paths are picked up in getHandler
-      if (options.name || component) {
-        this.serverRoutePaths.push(path);
-      }
+    if (!this.serverRoutesObj[path]) {
+      this.serverRoutesObj[path] = [{ name: 'users', path: path, handler: options.handler}];
+    }
+    else {
+      this.serverRoutesObj[path].push({ name: 'users', path: path, handler: options.handler});
+    }
 
-      if (!options.handle || (typeof options.handle !== 'function' && typeof options.handle !== 'object')) {
-        handler = function(request, reply) {
-          // @TODO: add option for XML appData
-          reply.view('index', { body: request.app.body, appData: { data: request.app.appData, path: request.path } });
+    if (this.serverRoutePaths.indexOf(options.path) === -1) {
+
+      // check path again after formatting
+      if (this.serverRoutePaths.indexOf(path) === -1) {
+        // Only add to route paths if it's also
+        // a react route.  Need this otherwise
+        // asset paths are picked up in getHandler
+        if (options.name || component) {
+          this.serverRoutePaths.push(path);
         }
-      }
-      else {
-        if (typeof options.handle === 'function') {
+
+        if (!options.handle || (typeof options.handle !== 'function' && typeof options.handle !== 'object')) {
           handler = function(request, reply) {
-            options.handle(request, reply);
+            // @TODO: add option for XML appData
+            reply.view('index', { body: request.app.body, appData: { data: request.app.appData, path: request.path } });
           }
         }
-        if (typeof options.handle === 'object') {
-          handler = options.handle;
+        else {
+          if (typeof options.handle === 'function') {
+            handler = function(request, reply) {
+              options.handle(request, reply);
+            }
+          }
+          if (typeof options.handle === 'object') {
+            handler = options.handle;
+          }
         }
-      }
 
-      // Add the route to hapi server
-      this.server.route({
-        method: 'GET',
-        path: path,
-        handler: handler
-      });
+        // Add the route to hapi server
+        this.server.route({
+          method: 'GET',
+          path: path,
+          handler: handler
+        });
+      }
     }
   }
 }
@@ -87,12 +97,14 @@ Server.prototype.attachPlugins = function() {
   // Add our fetcher to be used in getHandler
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
+  var serverRoutesObj = this.serverRoutesObj;
 
   this.server.register({
     register: require('./plugins/isoApp'),
     options: {
       reactRoutes: reactRoutes,
-      serverRoutePaths: serverRoutePaths
+      serverRoutePaths: serverRoutePaths,
+      serverRoutesObj: serverRoutesObj
     }
   }, function(err) {
     if (err) {
