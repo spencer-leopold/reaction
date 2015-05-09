@@ -38,7 +38,7 @@ function Server(options, serverInstance) {
   this.attachPlugins();
 }
 
-Server.prototype.addRoute = function(options, component) {
+Server.prototype.addRoute = function(options, component, mainComponent) {
   var path = '', handler;
   var mountPath = this.options.mountPath
   options = options || {};
@@ -46,6 +46,10 @@ Server.prototype.addRoute = function(options, component) {
   if (options.path) {
     path = options.path;
     path = path.replace(/\:([^\/\s]*)/g, '{$1}');
+
+    if (mainComponent) {
+      this.serverRoutesObj.main_component = { name: 'app', path: path, handler: options.handler};
+    }
 
     if (!this.serverRoutesObj[path]) {
       this.serverRoutesObj[path] = [{ name: 'users', path: path, handler: options.handler}];

@@ -57,7 +57,8 @@ ReactionRouter.prototype.buildRoutes = function() {
   var test = require(this.options.paths.componentsDir+'/App');
   var components = test.components();
   var routes = components._store.props.children;
-  Events.trigger('route:add', components._store.props, 'component');
+  Events.trigger('route:add', components._store.props, 'component', true);
+
   _.forEach(routes, function(route) {
     var props = route._store.props;
     Events.trigger('route:add', props, 'component');

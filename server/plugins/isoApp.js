@@ -21,7 +21,7 @@ exports.register = function(server, options, next) {
       var routes = options.serverRoutesObj[request.route.path];
 
       fetcher.fetchData(routes, request.params).then(function(data) {
-        var Handler = routes[0].handler;
+        var Handler = options.serverRoutesObj.main_component.handler;
         console.log(data);
         var markup = React.renderToString(React.createFactory(Handler)({ path: request.route.path, data: data, params: request.params }));
         // attach the markup and initial data to the
