@@ -181,22 +181,21 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 }
 
 ReactionRouter.prototype.start = function(appData, el) {
+  var that = this;
+
   if (!isServer) {
-    var that = this;
+
     if (!el) {
-      var el = document.body
+      el = document.body
     }
 
     window.onload = function() {
-      var fetcher;
-
       ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
         if (appData && typeof appData === 'object' && appData.path === state.path) {
           React.render(React.createFactory(Handler)(appData), el);
         }
         else {
-          fetcher = Fetcher;
-          fetcher.fetchData(state.routes, state.params).then(function(data) {
+          Fetcher.fetchData(state.routes, state.params).then(function(data) {
             React.render(React.createFactory(Handler)({ data: data }), el);
           });
         }
