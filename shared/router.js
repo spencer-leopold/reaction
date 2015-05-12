@@ -12,6 +12,7 @@ var _currentRoute;
 
 function ReactionRouter(options) {
   this.routes = [];
+  this.componentRoutes = {};
   this._initOptions(options);
 }
 
@@ -50,22 +51,6 @@ ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
   var mountPath = this.options.mountPath || '';
   var routes = {}, path;
-
-
-
-  // @TODO: get components working
-  var test = require(this.options.paths.componentsDir+'/App');
-  var components = test.components();
-  var routes = components._store.props.children;
-  Events.trigger('route:add', components._store.props, 'component', true);
-
-  _.forEach(routes, function(route) {
-    var props = route._store.props;
-    Events.trigger('route:add', props, 'component');
-  });
-
-
-
 
   function captureRoutes(options, callback) {
     // Prefix React Router paths if a mountPath
@@ -203,12 +188,14 @@ ReactionRouter.prototype.start = function(appData, el) {
     }
 
     window.onload = function() {
+      var fetcher;
+
       ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
         if (appData && typeof appData === 'object' && appData.path === state.path) {
           React.render(React.createFactory(Handler)(appData), el);
         }
         else {
-          var fetcher = Fetcher;
+          fetcher = Fetcher;
           fetcher.fetchData(state.routes, state.params).then(function(data) {
             React.render(React.createFactory(Handler)({ data: data }), el);
           });

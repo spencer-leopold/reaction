@@ -19,6 +19,10 @@ Fetcher.prototype.setHeaderValue = function(key, val) {
   this.headers[key] = val;
 }
 
+Fetcher.prototype.removeHeaderValue = function(key) {
+  delete this.headers[key];
+}
+
 Fetcher.prototype.fetchData = function(routes, params) {
   var data = {};
 
