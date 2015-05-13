@@ -8,8 +8,6 @@ exports.register = function(server, options, next) {
   // fail on initial page load
   fetcher.setBaseUrl(server.info);
 
-  console.log(options.serverRoutesObj);
-
   server.ext('onPreHandler', function(request, reply) {
     // Make sure we're calling the ReactRouter on an actual react path,
     // not an asset path or some other resource
@@ -17,55 +15,17 @@ exports.register = function(server, options, next) {
       reply.continue();
     }
     else {
-      // React-Router-Component functionality
-      var routes = options.serverRoutesObj[request.route.path];
-
-      fetcher.fetchData(routes, request.params).then(function(data) {
-        var Handler = options.serverRoutesObj.main_component.handler;
-        console.log(data);
-        var markup = React.renderToString(React.createFactory(Handler)({ path: request.route.path, data: data, params: request.params }));
-        // attach the markup and initial data to the
-        // request object to be used with templates
-        request.app.body = markup;
-        request.app.appData = data;
-        reply.continue();
+      // React-Router functionality
+      ReactRouter.run(options.reactRoutes, request.path, function(Handler, state) {
+        fetcher.fetchData(state.routes, state.params).then(function(data) {
+          var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
+          // attach the markup and initial data to the
+          // request object to be used with templates
+          request.app.body = markup;
+          request.app.appData = data;
+          reply.continue();
+        });
       });
-
-
-        
-      // if (Handler.fetchData && typeof Handler.fetchData === 'function') {
-      //   Handler.fetchData().then(function(data) {
-      //     var markup = React.renderToString(React.createFactory(Handler)({ path: request.route.path, data: data }));
-      //     // attach the markup and initial data to the
-      //     // request object to be used with templates
-      //     request.app.body = markup;
-      //     request.app.appData = data;
-      //     reply.continue();
-      //   });
-      // }
-      // else {
-      //   markup = React.renderToString(React.createFactory(Handler)({ path: request.route.path }));
-      //   // attach the markup and initial data to the
-      //   // request object to be used with templates
-      //   request.app.body = markup;
-      //   request.app.appData = data;
-      //   reply.continue();
-      // }
-
-
-
-
-      // // React-Router functionality
-      // ReactRouter.run(options.reactRoutes, request.path, function(Handler, state) {
-      //   fetcher.fetchData(state.routes, state.params).then(function(data) {
-      //     var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
-      //     // attach the markup and initial data to the
-      //     // request object to be used with templates
-      //     request.app.body = markup;
-      //     request.app.appData = data;
-      //     reply.continue();
-      //   });
-      // });
     }
   });
 

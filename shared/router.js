@@ -26,7 +26,6 @@ ReactionRouter.prototype._initOptions = function(options) {
 
   options.paths = _.defaults(options.paths, {
     entryPath: entryPath,
-    routes: entryPath + 'app/routes',
     componentsDir: entryPath + 'app/components'
   });
 
@@ -39,30 +38,97 @@ ReactionRouter.prototype.getComponentPath = function(componentName) {
 }
 
 ReactionRouter.prototype.loadComponent = function(componentName) {
-  var componentPath = this.getcomponentPath(componentName);
+  var componentPath = this.getComponentPath(componentName);
   return require(componentPath);
 }
 
 ReactionRouter.prototype.getRouteBuilder = function() {
-  return require(this.options.paths.routes);
+  if (this.options.paths.routes) {
+    return require(this.options.paths.routes);
+  }
+  else {
+    return false;
+  }
+}
+
+ReactionRouter.prototype.prefixRoutePath = function(path) {
+  var mountPath = this.options.mountPath;
+  // Prefix React Router paths if a mountPath
+  // is set and the react path is absolute
+
+  if (!mountPath || mountPath === '') {
+    return path;
+  }
+
+  if (path && path.charAt(0) === '/') {
+    if (path === '/') {
+      path = mountPath;
+    }
+    else {
+      path = mountPath + path;
+    }
+  }
+
+  return path;
 }
 
 ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
-  var mountPath = this.options.mountPath || '';
-  var routes = {}, path;
+  var options = this.options;
+  var routes = {};
+  var that = this;
+  var path;
+
+  if (options.entryPoints) {
+    if (options.entryPoints.constructor !== Array) {
+      throw new Error('entryPoints needs to be an array');
+    }
+
+    _.forEach(options.entryPoints, function(entryPoint) {
+      var component = this.loadComponent(entryPoint);
+      var staticRoutes = component.routes();
+      var parentRoute = staticRoutes._store.props;
+      var childRoutes = false;
+
+      if (parentRoute.children) {
+        var childRoutes = _.assign({}, parentRoute.children);
+        delete parentRoute.children;
+        parentRoute.childRoutes = [];
+      }
+
+      parentRoute.path = that.prefixRoutePath(parentRoute.path);
+
+      if (childRoutes) {
+        _.forEach(Object.keys(childRoutes), function(idx) {
+          var childRoute = childRoutes[idx]._store.props;
+          var childRouteType = childRoutes[idx].type.name;
+
+          if (!childRoute.name && childRoute.handler && childRouteType !== 'Redirect') {
+            var lastSlashPos = childRoute.handler.indexOf('/');
+            var name = childRoute.handler.substring(lastSlashPos + 1, childRoute.handler.length);
+            childRoute.name = name.toLowerCase();
+          }
+
+          if (!childRoute.path && childRoute.name && childRouteType !== 'Redirect') {
+            if (childRouteType === 'DefaultRoute') {
+              childRoute.path = parentRoute.path;
+            }
+            else {
+              childRoute.path = '/' + childRoute.name;
+            }
+          }
+
+          childRoute.parent = parentRoute;
+          parentRoute.childRoutes.push(childRoute);
+        });
+      }
+
+      routes[parentRoute.name] = parentRoute;
+    }.bind(this));
+  }
 
   function captureRoutes(options, callback) {
-    // Prefix React Router paths if a mountPath
-    // is set and the react path is absolute
-    if (options.path && options.path.charAt(0) === '/') {
-      if (options.path === '/') {
-        options.path = mountPath;
-      }
-      else {
-        options.path = mountPath + options.path;
-      }
-    }
+    options.path = that.prefixRoutePath(options.path);
 
     if (!callback) {
       routes[options.name] = options
@@ -71,7 +137,6 @@ ReactionRouter.prototype.buildRoutes = function() {
       var routeNest = _.toArray(arguments);
       var parentRoute = routeNest[0];
       var children = routeNest.slice(1);
-      var separator = '/';
 
       // remove processed children from routes object
       _.each(children, function(child, i) {
@@ -90,7 +155,9 @@ ReactionRouter.prototype.buildRoutes = function() {
     return options;
   }
 
-  routeBuilder(captureRoutes);
+  if (routeBuilder) {
+    routeBuilder(captureRoutes);
+  }
 
   // Loop through routes object and add definitions
   _.each(Object.keys(routes), function(route, i) {
