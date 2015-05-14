@@ -12,7 +12,7 @@ var _currentRoute;
 
 function ReactionRouter(options) {
   this.routes = [];
-  this.componentRoutes = {};
+  this.componentRoutes = [];
   this._initOptions(options);
 }
 
@@ -72,6 +72,65 @@ ReactionRouter.prototype.prefixRoutePath = function(path) {
   return path;
 }
 
+ReactionRouter.prototype.setRoutes = function(route) {
+  if (route.parent) {
+    this.setRoutes(route.parent);
+  }
+  else {
+    this.componentRoutes[route.name] = route;
+  }
+}
+
+ReactionRouter.prototype.iterateComponentRoutes = function(childRoutes, parentRoute) {
+  var that = this;
+
+  function process(childRoute, childRouteType) {
+    if (!childRoute.name && childRoute.handler && childRouteType !== 'Redirect') {
+      var lastSlashPos = childRoute.handler.indexOf('/');
+      var name = childRoute.handler.substring(lastSlashPos + 1, childRoute.handler.length);
+      childRoute.name = name.toLowerCase();
+    }
+
+    if (!childRoute.path && childRoute.name && childRouteType !== 'Redirect') {
+      if (childRouteType === 'DefaultRoute') {
+        childRoute.path = parentRoute.path;
+      }
+      else {
+        childRoute.path = childRoute.name;
+      }
+    }
+
+    childRoute.parent = parentRoute;
+    parentRoute.childRoutes.push(childRoute);
+
+    if (childRoute.children) {
+      var childRoutes2 = _.assign({}, childRoute.children);
+      delete childRoute.children;
+      childRoute.childRoutes = [];
+
+      that.iterateComponentRoutes(childRoutes2, childRoute);
+    }
+  }
+
+  if (childRoutes.type) {
+    var childRoute = childRoutes._store.props;
+    var childRouteType = childRoutes.type.name;
+    process(childRoute, childRouteType);
+  }
+  else {
+    _.forEach(Object.keys(childRoutes), function(idx) {
+      var childRoute = childRoutes[idx]._store.props;
+      var childRouteType = childRoutes[idx].type.name;
+      process(childRoute, childRouteType);
+    });
+  }
+
+  this.setRoutes(parentRoute);
+}
+
+ReactionRouter.prototype.iterateRoutes = function(child, parent) {
+}
+
 ReactionRouter.prototype.buildRoutes = function() {
   var routeBuilder = this.getRouteBuilder();
   var options = this.options;
@@ -99,31 +158,8 @@ ReactionRouter.prototype.buildRoutes = function() {
       parentRoute.path = that.prefixRoutePath(parentRoute.path);
 
       if (childRoutes) {
-        _.forEach(Object.keys(childRoutes), function(idx) {
-          var childRoute = childRoutes[idx]._store.props;
-          var childRouteType = childRoutes[idx].type.name;
-
-          if (!childRoute.name && childRoute.handler && childRouteType !== 'Redirect') {
-            var lastSlashPos = childRoute.handler.indexOf('/');
-            var name = childRoute.handler.substring(lastSlashPos + 1, childRoute.handler.length);
-            childRoute.name = name.toLowerCase();
-          }
-
-          if (!childRoute.path && childRoute.name && childRouteType !== 'Redirect') {
-            if (childRouteType === 'DefaultRoute') {
-              childRoute.path = parentRoute.path;
-            }
-            else {
-              childRoute.path = '/' + childRoute.name;
-            }
-          }
-
-          childRoute.parent = parentRoute;
-          parentRoute.childRoutes.push(childRoute);
-        });
+        this.iterateComponentRoutes(childRoutes, parentRoute);
       }
-
-      routes[parentRoute.name] = parentRoute;
     }.bind(this));
   }
 
@@ -164,6 +200,12 @@ ReactionRouter.prototype.buildRoutes = function() {
     this.addRouteDefinition(routes[route]);
   }.bind(this));
 
+  // Loop through componentRoutes object and add definitions
+  _.each(Object.keys(this.componentRoutes), function(route, i) {
+    this.addRouteDefinition(this.componentRoutes[route]);
+  }.bind(this));
+
+  console.log(this.routes[0].childRoutes[2].childRoutes[0]);
   return this.routes;
 }
 
