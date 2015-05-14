@@ -1,7 +1,4 @@
 var Router = require('../shared/router');
-// var React = require('react');
-// var ReactRouter = require('react-router');
-// var Fetcher = require('../shared/fetcher');
 var Events = require('../shared/events');
 var _ = require('lodash');
 
@@ -11,13 +8,22 @@ function Server(options, serverInstance) {
   this.serverRoutePaths = [];
   this.serverRoutesObj = {};
 
-  if (!options.appName && !options.mountPath) {
+  this.expressRouter = false;
+
+  if (options.express) {
+    express = require('express');
+    this.expressRouter = express.Router();
     this.server = serverInstance;
   }
   else {
-    var serverName = (options.appName) ? options.appName : options.mountPath.replace(/^\//, '');
-    var server = serverInstance.connection({ port: options.port, labels: serverName });
-    this.server = server.select(serverName);
+    if (!options.appName && !options.mountPath) {
+      this.server = serverInstance;
+    }
+    else {
+      var serverName = (options.appName) ? options.appName : options.mountPath.replace(/^\//, '');
+      var server = serverInstance.connection({ port: options.port, labels: serverName });
+      this.server = server.select(serverName);
+    }
   }
 
   // this.fetcher = Fetcher;
@@ -36,6 +42,8 @@ function Server(options, serverInstance) {
   // all user defined route handlers so the server reply can be
   // overriden
   this.attachPlugins();
+
+  return this.expressRouter;
 }
 
 Server.prototype.addRoute = function(options, component, mainComponent) {
@@ -58,9 +66,16 @@ Server.prototype.addRoute = function(options, component, mainComponent) {
         }
 
         if (!options.handle || (typeof options.handle !== 'function' && typeof options.handle !== 'object')) {
+          var action = 'view';
+
+          if (this.expressRouter) {
+            action = 'render';
+          }
+
           handler = function(request, reply) {
+            var attrs = request.attributes || {};
             // @TODO: add option for XML appData
-            reply.view('index', { body: request.app.body, appData: { data: request.app.appData, path: request.path } });
+            reply[action]('index', { body: attrs.body, appData: { data: attrs.appData, path: request.path } });
           }
         }
         else {
@@ -75,11 +90,16 @@ Server.prototype.addRoute = function(options, component, mainComponent) {
         }
 
         // Add the route to hapi server
-        this.server.route({
-          method: 'GET',
-          path: path,
-          handler: handler
-        });
+        if (this.expressRouter) {
+          this.expressRouter.get(path, handler);
+        }
+        else {
+          this.server.route({
+            method: 'GET',
+            path: path,
+            handler: handler
+          });
+        }
       }
     }
   }
@@ -90,19 +110,25 @@ Server.prototype.attachPlugins = function() {
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
   var serverRoutesObj = this.serverRoutesObj;
+  var pluginOptions = {
+    reactRoutes: reactRoutes,
+    serverRoutePaths: serverRoutePaths,
+    serverRoutesObj: serverRoutesObj
+  }
 
-  this.server.register({
-    register: require('./plugins/isoApp'),
-    options: {
-      reactRoutes: reactRoutes,
-      serverRoutePaths: serverRoutePaths,
-      serverRoutesObj: serverRoutesObj
-    }
-  }, function(err) {
-    if (err) {
-      console.log(err);
-    }
-  });
+  if (this.expressRouter) {
+    this.server.use(require('./middleware/expressApp')(pluginOptions));
+  }
+  else {
+    this.server.register({
+      register: require('./plugins/isoApp'),
+      options: pluginOptions
+    }, function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });
+  }
 
   // var serverRoutesObj = this.serverRoutesObj;
 

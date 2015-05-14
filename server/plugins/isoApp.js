@@ -21,8 +21,9 @@ exports.register = function(server, options, next) {
           var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
           // attach the markup and initial data to the
           // request object to be used with templates
-          request.app.body = markup;
-          request.app.appData = data;
+          request.attributes = {};
+          request.attributes.body = markup;
+          request.attributes.appData = data;
           reply.continue();
         });
       });
