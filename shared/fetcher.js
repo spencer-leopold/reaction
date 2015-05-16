@@ -76,7 +76,8 @@ METHODS.forEach(function(method) {
       }
 
       request.end(function(err, res) {
-        if (res.status === 404) {
+        var status = res.status || res.statusCode;
+        if (status === 404) {
           reject(new Error('not found'));
         } else {
           var data = res.body;

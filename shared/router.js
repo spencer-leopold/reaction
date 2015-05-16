@@ -205,7 +205,7 @@ ReactionRouter.prototype.buildRoutes = function() {
     this.addRouteDefinition(this.componentRoutes[route]);
   }.bind(this));
 
-  console.log(this.routes[0].childRoutes[2].childRoutes[0]);
+  // console.log(this.routes[0].childRoutes[2].childRoutes[0]);
   return this.routes;
 }
 
