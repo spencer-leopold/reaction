@@ -24,9 +24,11 @@
     "hapi": "^8.4.0",
     "lodash": "^3.6.0",
     "node-jsx": "^0.12.4",
+    "qs2": "^0.6.6",
     "react": "^0.13.1",
     "react-router": "^0.13.2",
     "react-tools": "^0.13.2",
+    "request": "^2.55.0",
     "superagent": "^1.2.0"
   },
   "devDependencies": {

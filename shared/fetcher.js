@@ -76,10 +76,10 @@ METHODS.forEach(function(method) {
       }
 
       request.end(function(err, res) {
-        var status = res.status || res.statusCode;
-        if (status === 404) {
+        if (res.status === 404) {
           reject(new Error('not found'));
-        } else {
+        }
+        else {
           var data = res.body;
           resolve(data);
 

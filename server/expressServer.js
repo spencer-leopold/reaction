@@ -1,4 +1,4 @@
-var Server = require('./base/server');
+var BaseServer = require('./base/server');
 var util = require('util');
 var express = require('express');
 
@@ -6,9 +6,10 @@ function ExpressServer(options, serverInstance) {
   this.server = serverInstance;
   this.expressRouter = express.Router();
 
-  Server.call(this, options, serverInstance);
+  BaseServer.call(this, options, serverInstance);
 
   this.attachMiddleware();
+  this.attachRoutes();
 
   return this.server;
 }
@@ -16,11 +17,10 @@ function ExpressServer(options, serverInstance) {
 /**
  * Extend base Server class
  */
-util.inherits(ExpressServer, Server);
+util.inherits(ExpressServer, BaseServer);
 
 ExpressServer.prototype.formatParams = function(path) {
-  var formattedPath = path.replace(/\:([^\/\s]*)/g, '{$1}');
-  return formattedPath;
+  return path;
 }
 
 ExpressServer.prototype.addRoute = function(path, options) {
@@ -68,6 +68,9 @@ ExpressServer.prototype.attachMiddleware = function() {
 
   this.server.use(require('./middleware/expressFetch')(middlewareOptions));
   this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
+}
+
+ExpressServer.prototype.attachRoutes = function() {
   this.server.use(this.expressRouter);
 }
 

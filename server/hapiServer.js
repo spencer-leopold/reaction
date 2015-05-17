@@ -1,4 +1,4 @@
-var Server = require('./base/server');
+var BaseServer = require('./base/server');
 var util = require('util');
 
 function HapiServer(options, serverInstance) {
@@ -11,7 +11,7 @@ function HapiServer(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
-  Server.call(this, options, serverInstance);
+  BaseServer.call(this, options, serverInstance);
 
   this.attachPlugins();
 
@@ -21,7 +21,7 @@ function HapiServer(options, serverInstance) {
 /**
  * Extend base Server class
  */
-util.inherits(HapiServer, Server);
+util.inherits(HapiServer, BaseServer);
 
 HapiServer.prototype.formatParams = function(path) {
   var formattedPath = path.replace(/\:([^\/\s]*)/g, '{$1}');
