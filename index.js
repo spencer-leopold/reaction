@@ -1,9 +1,15 @@
 if (!this.window) {
-  var Server = require('./server/server')
-
-  exports.Server = Server
 
   exports.attachApp = function(options, serverInstance) {
+    var Server;
+
+    if (serverInstance.response) {
+      Server = require('./server/expressServer');
+    }
+    else {
+      Server = require('./server/hapiServer');
+    }
+
     return new Server(options, serverInstance);
   };
 }
