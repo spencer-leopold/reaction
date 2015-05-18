@@ -5,13 +5,13 @@ var React = require('react');
 var ReactRouter = require('react-router');
 var Fetcher = require('./fetcher');
 var Events = require('./events');
-var ReactTools = require('react-tools');
 var _ = require('lodash');
 var isServer = (typeof window === 'undefined');
 var _currentRoute;
 
 function ReactionRouter(options) {
   this.routes = [];
+  this.fileRoutes = [];
   this.componentRoutes = [];
   this._initOptions(options);
 }
@@ -26,6 +26,7 @@ ReactionRouter.prototype._initOptions = function(options) {
 
   options.paths = _.defaults(options.paths, {
     entryPath: entryPath,
+    routes: entryPath + 'app/routes',
     componentsDir: entryPath + 'app/components'
   });
 
@@ -42,13 +43,19 @@ ReactionRouter.prototype.loadComponent = function(componentName) {
   return require(componentPath);
 }
 
-ReactionRouter.prototype.getRouteBuilder = function() {
-  if (this.options.paths.routes) {
-    return require(this.options.paths.routes);
+ReactionRouter.prototype.loadRoutes = function() {
+  var routesFile = false;
+
+  // try and load route files, don't throw en error
+  // if it fails since this is optional and we don't
+  // want an error thrown or logged in the browser.
+  try {
+    routesFile = require(this.options.paths.routes);
   }
-  else {
-    return false;
+  catch (e) {
   }
+
+  return routesFile;
 }
 
 ReactionRouter.prototype.prefixRoutePath = function(path) {
@@ -81,123 +88,117 @@ ReactionRouter.prototype.setRoutes = function(route) {
   }
 }
 
-ReactionRouter.prototype.iterateComponentRoutes = function(childRoutes, parentRoute) {
-  var that = this;
+ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRoute, childRouteType) {
+  if (!childRoute.name && childRoute.handler && childRouteType !== 'Redirect') {
+    var lastSlashPos = childRoute.handler.indexOf('/');
+    var name = childRoute.handler.substring(lastSlashPos + 1, childRoute.handler.length);
+    childRoute.name = name.toLowerCase();
+  }
 
-  function process(childRoute, childRouteType) {
-    if (!childRoute.name && childRoute.handler && childRouteType !== 'Redirect') {
-      var lastSlashPos = childRoute.handler.indexOf('/');
-      var name = childRoute.handler.substring(lastSlashPos + 1, childRoute.handler.length);
-      childRoute.name = name.toLowerCase();
+  if (!childRoute.path && childRoute.name && childRouteType !== 'Redirect') {
+    if (childRouteType === 'DefaultRoute') {
+      childRoute.path = parentRoute.path;
     }
-
-    if (!childRoute.path && childRoute.name && childRouteType !== 'Redirect') {
-      if (childRouteType === 'DefaultRoute') {
-        childRoute.path = parentRoute.path;
-      }
-      else {
-        childRoute.path = childRoute.name;
-      }
-    }
-
-    childRoute.parent = parentRoute;
-    parentRoute.childRoutes.push(childRoute);
-
-    if (childRoute.children) {
-      var childRoutes2 = _.assign({}, childRoute.children);
-      delete childRoute.children;
-      childRoute.childRoutes = [];
-
-      that.iterateComponentRoutes(childRoutes2, childRoute);
+    else {
+      childRoute.path = childRoute.name;
     }
   }
 
+  childRoute.parent = parentRoute;
+  parentRoute.childRoutes.push(childRoute);
+
+  if (childRoute.children) {
+    var childRoutes2 = _.assign({}, childRoute.children);
+    delete childRoute.children;
+    childRoute.childRoutes = [];
+
+    this.buildComponentRoutes(childRoutes2, childRoute);
+  }
+}
+
+ReactionRouter.prototype.buildComponentRoutes = function(childRoutes, parentRoute) {
   if (childRoutes.type) {
     var childRoute = childRoutes._store.props;
     var childRouteType = childRoutes.type.name;
-    process(childRoute, childRouteType);
+    this.iterateComponentRoutes(parentRoute, childRoute, childRouteType);
   }
   else {
     _.forEach(Object.keys(childRoutes), function(idx) {
       var childRoute = childRoutes[idx]._store.props;
       var childRouteType = childRoutes[idx].type.name;
-      process(childRoute, childRouteType);
-    });
+      this.iterateComponentRoutes(parentRoute, childRoute, childRouteType);
+    }.bind(this));
   }
 
   this.setRoutes(parentRoute);
 }
 
-ReactionRouter.prototype.iterateRoutes = function(child, parent) {
+ReactionRouter.prototype.loadComponentRoutes = function(entryPoints) {
+  if (entryPoints.constructor !== Array) {
+    throw new Error('entryPoints needs to be an array');
+  }
+
+  _.forEach(entryPoints, function(entryPoint) {
+    var component = this.loadComponent(entryPoint);
+    var staticRoutes = component.routes();
+    var parentRoute = staticRoutes._store.props;
+    var childRoutes = false;
+
+    if (parentRoute.children) {
+      var childRoutes = _.assign({}, parentRoute.children);
+      delete parentRoute.children;
+      parentRoute.childRoutes = [];
+    }
+
+    parentRoute.path = this.prefixRoutePath(parentRoute.path);
+
+    if (childRoutes) {
+      this.buildComponentRoutes(childRoutes, parentRoute);
+    }
+  }.bind(this));
+}
+
+ReactionRouter.prototype.buildRoutesFromFile = function(options, callback) {
+  options.path = this.prefixRoutePath(options.path);
+
+  if (!callback) {
+    this.fileRoutes[options.name] = options
+  }
+  else {
+    var routeNest = _.toArray(arguments);
+    var parentRoute = routeNest[0];
+    var children = routeNest.slice(1);
+
+    // remove processed children from routes object
+    _.each(children, function(child, i) {
+      if (child !== undefined) {
+        delete routes[child.name];
+      }
+
+      children[i].parent = parentRoute;
+    });
+
+    // add children as property to main route
+    parentRoute.childRoutes = children;
+    this.fileRoutes[parentRoute.name] = parentRoute;
+  }
 }
 
 ReactionRouter.prototype.buildRoutes = function() {
-  var routeBuilder = this.getRouteBuilder();
   var options = this.options;
-  var routes = {};
-  var that = this;
-  var path;
+  var routeBuilder = this.loadRoutes();
 
   if (options.entryPoints) {
-    if (options.entryPoints.constructor !== Array) {
-      throw new Error('entryPoints needs to be an array');
-    }
-
-    _.forEach(options.entryPoints, function(entryPoint) {
-      var component = this.loadComponent(entryPoint);
-      var staticRoutes = component.routes();
-      var parentRoute = staticRoutes._store.props;
-      var childRoutes = false;
-
-      if (parentRoute.children) {
-        var childRoutes = _.assign({}, parentRoute.children);
-        delete parentRoute.children;
-        parentRoute.childRoutes = [];
-      }
-
-      parentRoute.path = that.prefixRoutePath(parentRoute.path);
-
-      if (childRoutes) {
-        this.iterateComponentRoutes(childRoutes, parentRoute);
-      }
-    }.bind(this));
-  }
-
-  function captureRoutes(options, callback) {
-    options.path = that.prefixRoutePath(options.path);
-
-    if (!callback) {
-      routes[options.name] = options
-    }
-    else {
-      var routeNest = _.toArray(arguments);
-      var parentRoute = routeNest[0];
-      var children = routeNest.slice(1);
-
-      // remove processed children from routes object
-      _.each(children, function(child, i) {
-        if (child !== undefined) {
-          delete routes[child.name];
-        }
-
-        children[i].parent = parentRoute;
-      });
-
-      // add children as property to main route
-      parentRoute.childRoutes = children;
-      routes[parentRoute.name] = parentRoute;
-    }
-
-    return options;
+    this.loadComponentRoutes(options.entryPoints);
   }
 
   if (routeBuilder) {
-    routeBuilder(captureRoutes);
+    routeBuilder(this.buildRoutesFromFile);
   }
 
   // Loop through routes object and add definitions
-  _.each(Object.keys(routes), function(route, i) {
-    this.addRouteDefinition(routes[route]);
+  _.each(Object.keys(this.fileRoutes), function(route, i) {
+    this.addRouteDefinition(this.fileRoutes[route]);
   }.bind(this));
 
   // Loop through componentRoutes object and add definitions
@@ -206,85 +207,90 @@ ReactionRouter.prototype.buildRoutes = function() {
   }.bind(this));
 
   // console.log(this.routes[0].childRoutes[2].childRoutes[0]);
+  // console.log(this.routes);
   return this.routes;
 }
 
-ReactionRouter.prototype.addRouteDefinition = function(route) {
-  var componentsDir = this.options.paths.componentsDir;
-  var that = this;
 
-  function buildChildPaths(path, child) {
-    if (child.path && child.path.charAt(0) !== '/') {
-      if (path === '/') {
-        child.path = path + child.path;
-      }
-      else {
-        child.path = path + '/' + child.path;
-      }
+ReactionRouter.prototype.processChildRoute = function(path, child) {
+  if (child.path && child.path.charAt(0) !== '/') {
+    if (path === '/') {
+      child.path = path + child.path;
     }
-
-    if (child.childRoutes) {
-      _.each(child.childRoutes, function(childRoute) {
-        buildChildPaths(child.path, childRoute);
-      });
+    else {
+      child.path = path + '/' + child.path;
     }
   }
 
-  // Make relative children paths absolute
+  this.checkRouteForChildren(child);
+}
+
+ReactionRouter.prototype.checkRouteForChildren = function(route) {
   if (route.childRoutes) {
     _.each(route.childRoutes, function(childRoute) {
-      buildChildPaths(route.path, childRoute);
-    });
+      this.processChildRoute(route.path, childRoute);
+    }.bind(this));
   }
 
-  // recursive helper to run through routes and children
-  function checkChildRoutes(route, parent) {
-    var addToRoutes = true, reactRoute;
+  return route;
+}
 
-    // Attach the React component, it's originally set as
-    // a string to prevent having to require all components
-    // in the routes.js file
-    if (route.name) {
+ReactionRouter.prototype.processRoute = function(route, parent) {
+  var componentsDir = this.options.paths.componentsDir;
+  var addToRoutes = true, reactRoute;
 
-      // Only add the route to react if it has a name,
-      // otherwise it's a server route only
-      route.handler = require(componentsDir + '/' + route.handler);
+  // Attach the React component, it's originally set as
+  // a string to prevent having to require all components
+  // in the routes.js file
+  if (route.name) {
 
-      // If a parent is passed as an argument we
-      // add it as a parentRoute
-      if (parent) {
-        route.parentRoute = parent;
-      }
+    // Only add the route to react if it has a name,
+    // otherwise it's a server route only
+    route.handler = require(componentsDir + '/' + route.handler);
 
-      reactRoute = ReactRouter.createRoute(route);
+    // If a parent is passed as an argument we
+    // add it as a parentRoute
+    if (parent) {
+      route.parentRoute = parent;
     }
 
-    Events.trigger('route:add', route);
-
-    // If route doesn't have a parent it's a top-level route,
-    // so we want to add it to the main routes array
-    if (route.parent) {
-      addToRoutes = false;
-    }
-
-    // If the route has children, run the function again
-    // this time passing the current route as the `parent` parameter.
-    // This will repeat for as long as necessary until full nested route
-    // definition is built.
-    if (route.childRoutes) {
-      _.each(route.childRoutes, function(child) {
-        checkChildRoutes(child, reactRoute);
-      });
-    }
-
-    // If top-level route and not a server only route
-    // add to our main routes array
-    if (addToRoutes && route.name) {
-      that.routes.push(reactRoute);
-    }
+    reactRoute = ReactRouter.createRoute(route);
   }
 
-  checkChildRoutes(route);
+  Events.trigger('route:add', route);
+
+  // If route doesn't have a parent it's a top-level route,
+  // so we want to add it to the main routes array
+  if (route.parent) {
+    addToRoutes = false;
+  }
+
+  // If the route has children, run the function again
+  // this time passing the current route as the `parent` parameter.
+  // This will repeat for as long as necessary until full nested route
+  // definition is built.
+  if (route.childRoutes) {
+    _.each(route.childRoutes, function(child) {
+      this.processRoute(child, reactRoute);
+    }.bind(this));
+  }
+
+  // If top-level route and not a server only route
+  // add to our main routes array
+  if (addToRoutes && route.name) {
+    this.routes.push(reactRoute);
+  }
+
+  return route;
+}
+
+ReactionRouter.prototype.addRouteDefinition = function(route) {
+  // Make relative children paths absolute
+  if (route.childRoutes) {
+    route = this.checkRouteForChildren(route);
+  }
+
+  route = this.processRoute(route);
 
   return route;
 }
