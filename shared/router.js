@@ -108,11 +108,11 @@ ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRou
   parentRoute.childRoutes.push(childRoute);
 
   if (childRoute.children) {
-    var childRoutes2 = _.assign({}, childRoute.children);
+    var childRouteChildren = _.assign({}, childRoute.children);
     delete childRoute.children;
     childRoute.childRoutes = [];
 
-    this.buildComponentRoutes(childRoutes2, childRoute);
+    this.buildComponentRoutes(childRouteChildren, childRoute);
   }
 }
 
@@ -206,7 +206,7 @@ ReactionRouter.prototype.buildRoutes = function() {
     this.addRouteDefinition(this.componentRoutes[route]);
   }.bind(this));
 
-  // console.log(this.routes[0].childRoutes[2].childRoutes[0]);
+  // console.log(this.routes[0].childRoutes[0]);
   // console.log(this.routes);
   return this.routes;
 }
@@ -255,6 +255,15 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
     }
 
     reactRoute = ReactRouter.createRoute(route);
+
+    // Load components that need to be prefetched when
+    // route loads
+    if (route.prefetch) {
+      reactRoute.prefetchComponents = [];
+      _.forEach(route.prefetch, function(component) {
+        reactRoute.prefetchComponents.push(this.loadComponent(component));
+      }.bind(this));
+    }
   }
 
   Events.trigger('route:add', route);

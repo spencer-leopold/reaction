@@ -26,7 +26,7 @@ Fetcher.prototype.removeHeaderValue = function(key) {
 Fetcher.prototype.fetchData = function(routes, params) {
   var data = {};
 
-  return Promise.all(routes
+  var fetchData = routes
     .filter(function(route) {
       return route.handler.fetchData;
     })
@@ -34,13 +34,31 @@ Fetcher.prototype.fetchData = function(routes, params) {
       return route.handler.fetchData(params).then(function(d) {
         return data[route.name] = d;
       });
-      // return new Promise(function(resolve, reject) {
-      //   return route.handler.fetchData(params, resolve, reject);
-      // }).then(function(d) {
-      //   return data[route.name] = d;
-      // });
+    });
+
+  var components = [];
+  var childComponents = routes
+    .filter(function(route) {
+      return route.prefetchComponents;
     })
-  ).then(function() {
+    .map(function(route) {
+      return _.forEach(route.prefetchComponents, function(component) {
+        components.push(component);
+      });
+    });
+
+  var fetchChildData = components
+    .filter(function(component) {
+      return component.fetchData;
+    })
+    .map(function(component) {
+      var name = component.name.toLowerCase();
+      return component.fetchData(params).then(function(d) {
+        return data[name] = d;
+      });
+    });
+
+  return Promise.all([fetchData, childComponents, fetchChildData]).then(function() {
     return data;
   });
 }
