@@ -21,12 +21,15 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^2.9.24",
+    "express": "^4.12.4",
+    "hapi": "^8.5.1",
     "lodash": "^3.6.0",
     "node-jsx": "^0.12.4",
     "qs2": "^0.6.6",
     "react": "^0.13.1",
     "react-router": "^0.13.2",
     "request": "^2.55.0",
+    "restify": "^3.0.3",
     "superagent": "^1.2.0"
   },
   "devDependencies": {

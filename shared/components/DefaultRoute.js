@@ -8,6 +8,7 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 
 var React = require("react");
 var invariant = require("react/lib/invariant");
+var PropTypes = React.PropTypes;
 
 var DefaultRoute = (function (_React$Component) {
   function DefaultRoute() {
@@ -33,7 +34,7 @@ var DefaultRoute = (function (_React$Component) {
 DefaultRoute.propTypes = {
   name: PropTypes.string,
   handle: PropTypes.func,
-  handler: PropTypes.func,
+  handler: PropTypes.string,
   ignoreScrollBehavior: PropTypes.bool
 };
 

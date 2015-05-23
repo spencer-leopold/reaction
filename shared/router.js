@@ -3,6 +3,8 @@
 //
 var React = require('react');
 var ReactRouter = require('react-router');
+var ReactionRouterComponents = require('./components');
+var DeepExtend = require('deep-extend');
 var Fetcher = require('./fetcher');
 var Events = require('./events');
 var _ = require('lodash');
@@ -11,7 +13,6 @@ var _currentRoute;
 
 function ReactionRouter(options) {
   this.routes = [];
-  this.fileRoutes = [];
   this.componentRoutes = [];
   this._initOptions(options);
 }
@@ -43,7 +44,7 @@ ReactionRouter.prototype.loadComponent = function(componentName) {
   return require(componentPath);
 }
 
-ReactionRouter.prototype.loadRoutes = function() {
+ReactionRouter.prototype.loadRoutesFromFile = function() {
   var routesFile = false;
 
   // try and load route files, don't throw en error
@@ -84,7 +85,15 @@ ReactionRouter.prototype.setRoutes = function(route) {
     this.setRoutes(route.parent);
   }
   else {
-    this.componentRoutes[route.name] = route;
+    if (!this.componentRoutes[route.name]) {
+      this.componentRoutes[route.name] = route;
+    }
+    else {
+      var currentComponentRoute = this.componentRoutes[route.name];
+
+      // @TODO: Add deep extend
+      this.componentRoutes[route.name] = route;
+    }
   }
 }
 
@@ -102,6 +111,24 @@ ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRou
     else {
       childRoute.path = childRoute.name;
     }
+  }
+
+  switch (childRouteType) {
+    case 'DefaultRoute':
+      childRoute.isDefault = true;
+      break;
+    case 'NotFoundRoute':
+      childRoute.isNotFound = true;
+      break;
+    case 'Prefetch':
+      childRoute.prefetch = true;
+      break;
+    case 'Redirect':
+      childRoute.path = childRoute.path || childRoute.from || "*",
+      childRoute.onEnter = function onEnter(transition, params, query) {
+        transition.redirect(childRoute.to, childRoute.params || params, childRoute.query || query);
+      }
+      break;
   }
 
   childRoute.parent = parentRoute;
@@ -133,86 +160,61 @@ ReactionRouter.prototype.buildComponentRoutes = function(childRoutes, parentRout
   this.setRoutes(parentRoute);
 }
 
-ReactionRouter.prototype.loadComponentRoutes = function(entryPoints) {
+ReactionRouter.prototype.parseRoute = function(routes) {
+  var parentRoute = routes._store.props;
+  var childRoutes = false;
+
+  if (parentRoute.children) {
+    var childRoutes = _.assign({}, parentRoute.children);
+    delete parentRoute.children;
+    parentRoute.childRoutes = [];
+  }
+
+  parentRoute.path = this.prefixRoutePath(parentRoute.path);
+
+  if (childRoutes) {
+    this.buildComponentRoutes(childRoutes, parentRoute);
+  }
+}
+
+ReactionRouter.prototype.loadRoutesFromComponent = function(entryPoints) {
   if (entryPoints.constructor !== Array) {
     throw new Error('entryPoints needs to be an array');
   }
 
   _.forEach(entryPoints, function(entryPoint) {
     var component = this.loadComponent(entryPoint);
-    var staticRoutes = component.routes();
-    var parentRoute = staticRoutes._store.props;
-    var childRoutes = false;
-
-    if (parentRoute.children) {
-      var childRoutes = _.assign({}, parentRoute.children);
-      delete parentRoute.children;
-      parentRoute.childRoutes = [];
-    }
-
-    parentRoute.path = this.prefixRoutePath(parentRoute.path);
-
-    if (childRoutes) {
-      this.buildComponentRoutes(childRoutes, parentRoute);
-    }
+    var routes = component.routes();
+    this.parseRoute(routes);
   }.bind(this));
-}
-
-ReactionRouter.prototype.buildRoutesFromFile = function(options, callback) {
-  options.path = this.prefixRoutePath(options.path);
-
-  if (!callback) {
-    this.fileRoutes[options.name] = options
-  }
-  else {
-    var routeNest = _.toArray(arguments);
-    var parentRoute = routeNest[0];
-    var children = routeNest.slice(1);
-
-    // remove processed children from routes object
-    _.each(children, function(child, i) {
-      if (child !== undefined) {
-        delete routes[child.name];
-      }
-
-      children[i].parent = parentRoute;
-    });
-
-    // add children as property to main route
-    parentRoute.childRoutes = children;
-    this.fileRoutes[parentRoute.name] = parentRoute;
-  }
 }
 
 ReactionRouter.prototype.buildRoutes = function() {
   var options = this.options;
-  var routeBuilder = this.loadRoutes();
+  var routeBuilder = this.loadRoutesFromFile();
 
   if (options.entryPoints) {
-    this.loadComponentRoutes(options.entryPoints);
+    this.loadRoutesFromComponent(options.entryPoints);
   }
 
   if (routeBuilder) {
-    routeBuilder(this.buildRoutesFromFile);
+    var routes = routeBuilder(ReactionRouterComponents);
+    this.parseRoute(routes);
   }
-
-  // Loop through routes object and add definitions
-  _.each(Object.keys(this.fileRoutes), function(route, i) {
-    this.addRouteDefinition(this.fileRoutes[route]);
-  }.bind(this));
 
   // Loop through componentRoutes object and add definitions
   _.each(Object.keys(this.componentRoutes), function(route, i) {
     this.addRouteDefinition(this.componentRoutes[route]);
   }.bind(this));
 
-  // console.log(this.routes[0].childRoutes[0]);
+  // console.log(this.routes[0].childRoutes[2]);
+  console.log(this.routes[0].childRoutes);
   // console.log(this.routes);
   return this.routes;
 }
 
 
-ReactionRouter.prototype.processChildRoute = function(path, child) {
+ReactionRouter.prototype.setChildRoutePath = function(path, child) {
   if (child.path && child.path.charAt(0) !== '/') {
     if (path === '/') {
       child.path = path + child.path;
@@ -222,13 +224,13 @@ ReactionRouter.prototype.processChildRoute = function(path, child) {
     }
   }
 
-  this.checkRouteForChildren(child);
+  this.buildChildRoutePaths(child);
 }
 
-ReactionRouter.prototype.checkRouteForChildren = function(route) {
+ReactionRouter.prototype.buildChildRoutePaths = function(route) {
   if (route.childRoutes) {
     _.each(route.childRoutes, function(childRoute) {
-      this.processChildRoute(route.path, childRoute);
+      this.setChildRoutePath(route.path, childRoute);
     }.bind(this));
   }
 
@@ -296,7 +298,7 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
 ReactionRouter.prototype.addRouteDefinition = function(route) {
   // Make relative children paths absolute
   if (route.childRoutes) {
-    route = this.checkRouteForChildren(route);
+    route = this.buildChildRoutePaths(route);
   }
 
   route = this.processRoute(route);

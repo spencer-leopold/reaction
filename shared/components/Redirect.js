@@ -8,6 +8,7 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 
 var React = require("react");
 var invariant = require("react/lib/invariant");
+var PropTypes = React.PropTypes;
 
 var Redirect = (function (_React$Component) {
   function Redirect() {

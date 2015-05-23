@@ -8,6 +8,7 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 
 var React = require("react");
 var invariant = require("react/lib/invariant");
+var PropTypes = React.PropTypes;
 
 var Prefetch = (function (_React$Component) {
   function Prefetch() {
@@ -35,5 +36,4 @@ Prefetch.propTypes = {
   handler: PropTypes.func,
 };
 
-modules.exports = Prefetch;
-
+module.exports = Prefetch;

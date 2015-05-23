@@ -8,6 +8,7 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 
 var React = require("react");
 var invariant = require("react/lib/invariant");
+var PropTypes = React.PropTypes;
 
 var NotFoundRoute = (function (_React$Component) {
   function NotFoundRoute() {
@@ -33,9 +34,8 @@ var NotFoundRoute = (function (_React$Component) {
 NotFoundRoute.propTypes = {
   name: PropTypes.string,
   handle: PropTypes.func,
-  handler: PropTypes.func,
+  handler: PropTypes.string,
   ignoreScrollBehavior: PropTypes.bool
 };
 
-modules.exports = NotFoundRoute;
-
+module.exports = NotFoundRoute;
