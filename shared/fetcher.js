@@ -25,8 +25,15 @@ Fetcher.prototype.removeHeaderValue = function(key) {
 
 Fetcher.prototype.fetchData = function(routes, params) {
   var data = {};
+  var self = this;
 
-  var fetchData = routes
+  return Promise.all([self.fetchRouteData(routes, params, data), self.fetchPrefetchData(routes, params, data)]).then(function() {
+    return data;
+  });
+}
+
+Fetcher.prototype.fetchRouteData = function(routes, params, data) {
+  return Promise.all(routes
     .filter(function(route) {
       return route.handler.fetchData;
     })
@@ -34,35 +41,30 @@ Fetcher.prototype.fetchData = function(routes, params) {
       return route.handler.fetchData(params).then(function(d) {
         return data[route.name] = d;
       });
-    });
-
-  var self = this;
-
-  return Promise.all([fetchData, self.preFetch(routes, params, data)]).then(function() {
+    })
+  ).then(function() {
     return data;
   });
 }
 
-Fetcher.prototype.preFetch = function(routes, params, data) {
-  var components = [];
-  var childComponents = routes
+Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
+  return Promise.all(routes
     .filter(function(route) {
       return route.prefetchHandlers;
     })
     .map(function(route) {
-      return _.forEach(route.prefetchHandlers, function(component) {
-        components.push(component);
-      });
-    });
-
-  return Promise.all(components
-    .filter(function(component) {
-      return component.fetchData;
-    })
-    .map(function(component) {
-      var name = component.name.toLowerCase();
-      return component.fetchData(params).then(function(d) {
-        return data[name] = d;
+      return Promise.all(route.prefetchHandlers
+        .filter(function(component) {
+          return component.fetchData;
+        })
+        .map(function(component) {
+          var name = component.name.toLowerCase();
+          return component.fetchData(params).then(function(d) {
+            return data[name] = d;
+          });
+        })
+      ).then(function() {
+        return data;
       });
     })
   ).then(function() {
@@ -71,7 +73,7 @@ Fetcher.prototype.preFetch = function(routes, params, data) {
 }
 
 METHODS.forEach(function(method) {
-  Fetcher.prototype[method] = function(url, data, headers) {
+  Fetcher.prototype[method] = function(url, data, headers, freshFetch) {
     var that = this;
     var request;
 
@@ -79,7 +81,7 @@ METHODS.forEach(function(method) {
       url = this.baseUrl + url;
     }
 
-    if (method === 'get' && this._cache[url]) {
+    if (method === 'get' && this._cache[url] && !freshFetch) {
       return Promise.resolve(this._cache[url]);
     }
 
