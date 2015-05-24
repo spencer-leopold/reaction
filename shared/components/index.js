@@ -1,4 +1,8 @@
 var React = require('react');
+var ReactRouter = require('react-router');
+var RouteHandler = ReactRouter.RouteHandler;
+var Link = ReactRouter.Link;
+
 var Route = require('./Route');
 var DefaultRoute = require('./DefaultRoute');
 var NotFoundRoute = require('./NotFoundRoute');
@@ -6,6 +10,9 @@ var Redirect = require('./Redirect');
 var Prefetch = require('./Redirect');
 
 module.exports = {
+  React: React,
+  RouteHandler: RouteHandler,
+  Link: Link,
   route: React.createFactory(Route),
   defaultRoute: React.createFactory(DefaultRoute),
   notFoundRoute: React.createFactory(NotFoundRoute),

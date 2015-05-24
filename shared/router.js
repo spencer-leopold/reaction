@@ -4,7 +4,6 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
-var DeepExtend = require('deep-extend');
 var Fetcher = require('./fetcher');
 var Events = require('./events');
 var _ = require('lodash');
@@ -81,6 +80,9 @@ ReactionRouter.prototype.prefixRoutePath = function(path) {
 }
 
 ReactionRouter.prototype.setRoutes = function(route) {
+  // Only add to componentRoutes if it's a top level
+  // route, so if route has a parent, iterate until
+  // we're at the top
   if (route.parent) {
     this.setRoutes(route.parent);
   }
@@ -92,9 +94,49 @@ ReactionRouter.prototype.setRoutes = function(route) {
       var currentComponentRoute = this.componentRoutes[route.name];
 
       // @TODO: Add deep extend
+      if (currentComponentRoute.childRoutes && route.childRoutes) {
+        route.childRoutes = this.extendChildRoutes(route.childRoutes, currentComponentRoute.childRoutes);
+      }
+
       this.componentRoutes[route.name] = route;
     }
   }
+}
+
+ReactionRouter.prototype.extendChildRoutes = function(source1, source2) {
+  var extended = [];
+
+  for (var i = 0; i < source2.length; i++) {
+    var shared = false;
+
+    for (var j = 0; j < source1.length; j++) {
+      // want to look for matching names first since
+      // there can't be two react routes with the same
+      // name
+      if (source2[i].name) {
+        if (source2[i].name === source1[j].name) {
+          shared = true;
+          break;
+        }
+      }
+      // Redirect routes don't have a name so have a 
+      // fallback to check for path. All routes must
+      // have a path
+      else {
+        if (source2[i].path === source1[j].path) {
+          shared = true;
+          break;
+        }
+      }
+    }
+
+    if (!shared) {
+      extended.push(source2[i]);
+    }
+  }
+
+  extended = source1.concat(extended);
+  return extended;
 }
 
 ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRoute, childRouteType) {
@@ -120,9 +162,6 @@ ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRou
     case 'NotFoundRoute':
       childRoute.isNotFound = true;
       break;
-    case 'Prefetch':
-      childRoute.prefetch = true;
-      break;
     case 'Redirect':
       childRoute.path = childRoute.path || childRoute.from || "*",
       childRoute.onEnter = function onEnter(transition, params, query) {
@@ -131,8 +170,18 @@ ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRou
       break;
   }
 
-  childRoute.parent = parentRoute;
-  parentRoute.childRoutes.push(childRoute);
+  if (childRouteType !== 'Prefetch') {
+    childRoute.parent = parentRoute;
+    parentRoute.childRoutes.push(childRoute);
+  }
+  else {
+    if (!parentRoute.prefetchHandlers) {
+      parentRoute.prefetchHandlers = [];
+    }
+
+    var handler = this.loadComponent(childRoute.handler);
+    parentRoute.prefetchHandlers.push(handler);
+  }
 
   if (childRoute.children) {
     var childRouteChildren = _.assign({}, childRoute.children);
@@ -161,6 +210,10 @@ ReactionRouter.prototype.buildComponentRoutes = function(childRoutes, parentRout
 }
 
 ReactionRouter.prototype.parseRoute = function(routes) {
+  if (!routes) {
+    return false;
+  }
+
   var parentRoute = routes._store.props;
   var childRoutes = false;
 
@@ -208,8 +261,8 @@ ReactionRouter.prototype.buildRoutes = function() {
   }.bind(this));
 
   // console.log(this.routes[0].childRoutes[2]);
-  console.log(this.routes[0].childRoutes);
-  // console.log(this.routes);
+  // console.log(this.routes[0].childRoutes[3]);
+  // console.log(this.routes[0].childRoutes);
   return this.routes;
 }
 
@@ -239,32 +292,27 @@ ReactionRouter.prototype.buildChildRoutePaths = function(route) {
 
 ReactionRouter.prototype.processRoute = function(route, parent) {
   var componentsDir = this.options.paths.componentsDir;
-  var addToRoutes = true, reactRoute;
+  var addToRoutes = true;
+  var reactRoute = false;
 
-  // Attach the React component, it's originally set as
-  // a string to prevent having to require all components
-  // in the routes.js file
+  // If a parent is passed as an argument we
+  // add it as a parentRoute
+  if (parent) {
+    route.parentRoute = parent;
+  }
+
   if (route.name) {
 
-    // Only add the route to react if it has a name,
-    // otherwise it's a server route only
-    route.handler = require(componentsDir + '/' + route.handler);
-
-    // If a parent is passed as an argument we
-    // add it as a parentRoute
-    if (parent) {
-      route.parentRoute = parent;
+    if (route.to) {
+      reactRoute = ReactRouter.createRoute(route);
     }
+    else {
+      // Attach the React component, it's originally set as
+      // a string to prevent having to require all components
+      // in the routes.js file
+      route.handler = this.loadComponent(route.handler);
 
-    reactRoute = ReactRouter.createRoute(route);
-
-    // Load components that need to be prefetched when
-    // route loads
-    if (route.prefetch) {
-      reactRoute.prefetchComponents = [];
-      _.forEach(route.prefetch, function(component) {
-        reactRoute.prefetchComponents.push(this.loadComponent(component));
-      }.bind(this));
+      reactRoute = ReactRouter.createRoute(route);
     }
   }
 
@@ -274,6 +322,11 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
   // so we want to add it to the main routes array
   if (route.parent) {
     addToRoutes = false;
+  }
+
+  // Add any prefetch handlers on to the react route
+  if (route.prefetchHandlers && reactRoute) {
+    reactRoute.prefetchHandlers = route.prefetchHandlers;
   }
 
   // If the route has children, run the function again
@@ -288,7 +341,7 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
 
   // If top-level route and not a server only route
   // add to our main routes array
-  if (addToRoutes && route.name) {
+  if ((addToRoutes && route.name) || (addToRoutes && route.to)) {
     this.routes.push(reactRoute);
   }
 

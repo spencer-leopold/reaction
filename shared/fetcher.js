@@ -36,18 +36,26 @@ Fetcher.prototype.fetchData = function(routes, params) {
       });
     });
 
+  var self = this;
+
+  return Promise.all([fetchData, self.preFetch(routes, params, data)]).then(function() {
+    return data;
+  });
+}
+
+Fetcher.prototype.preFetch = function(routes, params, data) {
   var components = [];
   var childComponents = routes
     .filter(function(route) {
-      return route.prefetchComponents;
+      return route.prefetchHandlers;
     })
     .map(function(route) {
-      return _.forEach(route.prefetchComponents, function(component) {
+      return _.forEach(route.prefetchHandlers, function(component) {
         components.push(component);
       });
     });
 
-  var fetchChildData = components
+  return Promise.all(components
     .filter(function(component) {
       return component.fetchData;
     })
@@ -56,9 +64,8 @@ Fetcher.prototype.fetchData = function(routes, params) {
       return component.fetchData(params).then(function(d) {
         return data[name] = d;
       });
-    });
-
-  return Promise.all([fetchData, childComponents, fetchChildData]).then(function() {
+    })
+  ).then(function() {
     return data;
   });
 }

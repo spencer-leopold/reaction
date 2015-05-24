@@ -33,7 +33,7 @@ var Prefetch = (function (_React$Component) {
 
 Prefetch.propTypes = {
   name: PropTypes.string,
-  handler: PropTypes.func,
+  handler: PropTypes.string,
 };
 
 module.exports = Prefetch;
