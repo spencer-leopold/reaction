@@ -1,4 +1,5 @@
 var React = require('react');
+var ReactAddons = require('react/addons');
 var ReactRouter = require('react-router');
 var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
@@ -11,6 +12,8 @@ var Prefetch = require('./Redirect');
 
 module.exports = {
   React: React,
+  ReactAddons: ReactAddons,
+  ReactRouter: ReactRouter,
   RouteHandler: RouteHandler,
   Link: Link,
   route: React.createFactory(Route),
