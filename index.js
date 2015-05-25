@@ -4,11 +4,13 @@ var ReactRouter = require('react-router');
 var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
 
+var ReactionRouter = require('./shared/router');
 var Route = require('./shared/components/Route');
 var DefaultRoute = require('./shared/components/DefaultRoute');
 var NotFoundRoute = require('./shared/components/NotFoundRoute');
 var Redirect = require('./shared/components/Redirect');
 var Prefetch = require('./shared/components/Prefetch');
+var isServer = (typeof window === 'undefined') ? true : false;
 
 module.exports = {
   React: React,
@@ -22,17 +24,23 @@ module.exports = {
   Redirect: Redirect,
   Prefetch: Prefetch,
   attachApp: function(options, serverInstance) {
-    var Server;
-
-    if (serverInstance.response) {
-      var expressRoute = './server/expressServer';
-      Server = require(expressRoute);
+    if (!isServer) {
+      console.log(options);
+      return new ReactionRouter(options);
     }
     else {
-      var hapiRoute = './server/hapiServer';
-      Server = require(hapiRoute);
-    }
+      var Server;
 
-    return new Server(options, serverInstance);
+      if (serverInstance.response) {
+        var expressRoute = './server/expressServer';
+        Server = require(expressRoute);
+      }
+      else {
+        var hapiRoute = './server/hapiServer';
+        Server = require(hapiRoute);
+      }
+
+      return new Server(options, serverInstance);
+    }
   }
 }
