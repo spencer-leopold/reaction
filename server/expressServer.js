@@ -1,4 +1,5 @@
 var BaseServer = require('./base/server');
+var React = require('react');
 var util = require('util');
 var express = require('express');
 
@@ -25,29 +26,45 @@ ExpressServer.prototype.formatParams = function(path) {
 
 ExpressServer.prototype.addRoute = function(path, options) {
   var handler;
+  var entryPath = this.router.options.entryPath;
 
   if (options.handle) {
     if (typeof options.handle !== 'function') {
       throw new Error('Route handle must be a function');
     }
     else {
-      handler = function(request, reply) {
-        options.handle(request, reply);
+      handler = function(request, response) {
+        options.handle(request, response);
       }
     }
   }
   else {
-    handler = function(request, reply) {
+    handler = function(request, response) {
       var attrs = request.attributes || {};
       var templateVars = {
         body: attrs.body,
         appData: {
           data: attrs.appData,
           path: request.path
+        },
+        start: function(config) {
+          var o = "<script type='text/javascript'>";
+          o += "(function() {\n";
+          o += "\tvar appData = "+JSON.stringify(attrs.appData)+";\n";
+          o += "\tvar ReactionRouter = window.ReactionRouter = require('app/app');\n";
+          o += "\tReactionRouter.start(appData, document.getElementById('main'));\n";
+          o += "\tconsole.log(appData);\n";
+          o += "})();\n";
+          o += "</script>";
+
+          return o;
         }
       }
 
-      reply.render('index', templateVars);
+      var Layout = require(entryPath + 'app/templates/layout.jsx');
+      var markup = React.renderToString(React.createFactory(Layout)(templateVars));
+      response.send(markup);
+      // response.render('index', templateVars);
     }
   }
 

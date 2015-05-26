@@ -25,7 +25,6 @@ module.exports = {
   Prefetch: Prefetch,
   attachApp: function(options, serverInstance) {
     if (!isServer) {
-      console.log(options);
       return new ReactionRouter(options);
     }
     else {
