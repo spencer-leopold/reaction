@@ -27,7 +27,8 @@ ReactionRouter.prototype._initOptions = function(options) {
   options.paths = _.defaults(options.paths, {
     entryPath: entryPath,
     routes: entryPath + 'app/routes',
-    componentsDir: entryPath + 'app/components'
+    componentsDir: entryPath + 'app/components',
+    templatesDir: entryPath + 'app/templates'
   });
 
   this.options = options;
@@ -359,17 +360,30 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
   return route;
 }
 
-ReactionRouter.prototype.start = function(appData, el) {
+ReactionRouter.prototype.start = function(appData, locationType, el) {
   var that = this;
 
   if (!isServer) {
-
-    if (!el) {
-      el = document.body
+    if (typeof locationType !== 'function') {
+      switch(locationType) {
+        case 'Hash':
+          locationType = ReactRouter.HashLocation;
+          break;
+        case 'Refresh':
+          locationType = ReactRouter.RefreshLocation;
+          break;
+        case 'Static':
+          locationType = ReactRouter.StaticLocation;
+          break;
+        case 'History':
+        default:
+          locationType = ReactRouter.HistoryLocation;
+          break;
+      }
     }
 
     window.onload = function() {
-      ReactRouter.run(that.buildRoutes(), ReactRouter.HistoryLocation, function (Handler, state) {
+      ReactRouter.run(that.buildRoutes(), locationType, function (Handler, state) {
         if (appData && typeof appData === 'object' && appData.path === state.path) {
           React.render(React.createFactory(Handler)(appData), el);
         }

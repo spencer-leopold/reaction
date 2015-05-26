@@ -1,4 +1,4 @@
-var Promise = require('bluebird');
+var Promise = require('when');
 var Request = require('superagent');
 var _ = require('lodash');
 var isServer = (typeof window === 'undefined');
@@ -85,7 +85,7 @@ METHODS.forEach(function(method) {
       return Promise.resolve(this._cache[url]);
     }
 
-    return new Promise(function(resolve, reject) {
+    return Promise.promise(function(resolve, reject) {
       request = Request[method](url);
 
       if (data && typeof data === 'object') {

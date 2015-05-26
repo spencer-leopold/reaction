@@ -23,23 +23,21 @@ module.exports = {
   NotFoundRoute: NotFoundRoute,
   Redirect: Redirect,
   Prefetch: Prefetch,
+  Router: function(options) {
+    return new ReactionRouter(options);
+  },
   attachApp: function(options, serverInstance) {
-    if (!isServer) {
-      return new ReactionRouter(options);
+    var Server;
+
+    if (serverInstance.response) {
+      var expressRoute = './server/expressServer';
+      Server = require(expressRoute);
     }
     else {
-      var Server;
-
-      if (serverInstance.response) {
-        var expressRoute = './server/expressServer';
-        Server = require(expressRoute);
-      }
-      else {
-        var hapiRoute = './server/hapiServer';
-        Server = require(hapiRoute);
-      }
-
-      return new Server(options, serverInstance);
+      var hapiRoute = './server/hapiServer';
+      Server = require(hapiRoute);
     }
+
+    return new Server(options, serverInstance);
   }
 }

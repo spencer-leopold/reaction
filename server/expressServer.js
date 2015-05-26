@@ -2,6 +2,7 @@ var BaseServer = require('./base/server');
 var React = require('react');
 var util = require('util');
 var express = require('express');
+var _ = require('lodash');
 
 function ExpressServer(options, serverInstance) {
   this.server = serverInstance;
@@ -27,6 +28,15 @@ ExpressServer.prototype.formatParams = function(path) {
 ExpressServer.prototype.addRoute = function(path, options) {
   var handler;
   var entryPath = this.router.options.entryPath;
+  var templatesDir = this.router.options.paths.templatesDir;
+
+  // Rewrite app paths for use on client-side
+  var clientOptions = _.cloneDeep(this.router.options);
+  clientOptions.entryPath = '';
+  clientOptions.paths.entryPath = '';
+  clientOptions.paths.routes = clientOptions.paths.routes.replace(entryPath, '');
+  clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
+  clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
 
   if (options.handle) {
     if (typeof options.handle !== 'function') {
@@ -47,13 +57,13 @@ ExpressServer.prototype.addRoute = function(path, options) {
           data: attrs.appData,
           path: request.path
         },
-        start: function(config) {
+        start: function(locationType) {
           var o = "<script type='text/javascript'>";
           o += "(function() {\n";
-          o += "\tvar appData = "+JSON.stringify(attrs.appData)+";\n";
-          o += "\tvar ReactionRouter = window.ReactionRouter = require('app/app');\n";
-          o += "\tReactionRouter.start(appData, document.getElementById('main'));\n";
-          o += "\tconsole.log(appData);\n";
+          o += "\tvar bootstapData = "+JSON.stringify(attrs.appData)+";\n";
+          o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
+          o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
+          o += "\tReactionRouter.start(bootstapData, '"+locationType+"', document.body);\n";
           o += "})();\n";
           o += "</script>";
 
@@ -61,10 +71,9 @@ ExpressServer.prototype.addRoute = function(path, options) {
         }
       }
 
-      var Layout = require(entryPath + 'app/templates/layout.jsx');
-      var markup = React.renderToString(React.createFactory(Layout)(templateVars));
+      var layoutTemplate = require(templatesDir + '/layout.jsx');
+      var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
       response.send(markup);
-      // response.render('index', templateVars);
     }
   }
 
