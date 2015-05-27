@@ -1,6 +1,6 @@
 var request = require('request');
 var qs = require('qs2');
-var _ = require('lodash');
+var _ = require('../../shared/lodash.custom');
 
 module.exports = function(options) {
   var requestUrl;

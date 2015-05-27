@@ -6,7 +6,7 @@ var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
 var Fetcher = require('./fetcher');
 var Events = require('./events');
-var _ = require('lodash');
+var _ = require('./lodash.custom');
 var isServer = (typeof window === 'undefined');
 var _currentRoute;
 
@@ -61,9 +61,9 @@ ReactionRouter.prototype.loadRoutesFromFile = function() {
 
 ReactionRouter.prototype.prefixRoutePath = function(path) {
   var mountPath = this.options.mountPath;
+
   // Prefix React Router paths if a mountPath
   // is set and the react path is absolute
-
   if (!mountPath || mountPath === '') {
     return path;
   }
@@ -257,13 +257,13 @@ ReactionRouter.prototype.buildRoutes = function() {
   }
 
   // Loop through componentRoutes object and add definitions
-  _.each(Object.keys(this.componentRoutes), function(route, i) {
+  _.forEach(Object.keys(this.componentRoutes), function(route, i) {
     this.addRouteDefinition(this.componentRoutes[route]);
   }.bind(this));
 
   // console.log(this.routes[0].childRoutes[0]);
-  // console.log(this.routes[0].childRoutes[3]);
-  // console.log(this.routes[0].childRoutes);
+  // console.log(this.routes[0].defaultRoute.childRoutes);
+  // console.log(this.routes[0]);
   return this.routes;
 }
 
@@ -283,7 +283,7 @@ ReactionRouter.prototype.setChildRoutePath = function(path, child) {
 
 ReactionRouter.prototype.buildChildRoutePaths = function(route) {
   if (route.childRoutes) {
-    _.each(route.childRoutes, function(childRoute) {
+    _.forEach(route.childRoutes, function(childRoute) {
       this.setChildRoutePath(route.path, childRoute);
     }.bind(this));
   }
@@ -335,7 +335,7 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
   // This will repeat for as long as necessary until full nested route
   // definition is built.
   if (route.childRoutes) {
-    _.each(route.childRoutes, function(child) {
+    _.forEach(route.childRoutes, function(child) {
       this.processRoute(child, reactRoute);
     }.bind(this));
   }

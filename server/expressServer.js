@@ -2,7 +2,7 @@ var BaseServer = require('./base/server');
 var React = require('react');
 var util = require('util');
 var express = require('express');
-var _ = require('lodash');
+var _ = require('../shared/lodash.custom');
 
 function ExpressServer(options, serverInstance) {
   this.server = serverInstance;

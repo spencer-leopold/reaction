@@ -1,6 +1,6 @@
 var Promise = require('when');
 var Request = require('superagent');
-var _ = require('lodash');
+var _ = require('./lodash.custom');
 var isServer = (typeof window === 'undefined');
 
 var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
@@ -93,7 +93,7 @@ METHODS.forEach(function(method) {
       }
 
       if (headers && typeof headers === 'object') {
-        var allHeaders = _.extend({}, that.headers, headers);
+        var allHeaders = _.assign({}, that.headers, headers);
         request.set(allHeaders);
       }
       else {
