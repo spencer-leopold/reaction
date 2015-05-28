@@ -1,5 +1,7 @@
+var React = require('react');
 var BaseServer = require('./base/server');
 var util = require('util');
+var _ = require('../shared/lodash.custom');
 
 function HapiServer(options, serverInstance) {
   if (!options.appName && !options.mountPath) {
@@ -30,6 +32,16 @@ HapiServer.prototype.formatParams = function(path) {
 
 HapiServer.prototype.addRoute = function(path, options) {
   var handler;
+  var entryPath = this.router.options.entryPath;
+  var templatesDir = this.router.options.paths.templatesDir;
+
+  // Rewrite app paths for use on client-side
+  var clientOptions = _.cloneDeep(this.router.options);
+  clientOptions.entryPath = '';
+  clientOptions.paths.entryPath = '';
+  clientOptions.paths.routes = clientOptions.paths.routes.replace(entryPath, '');
+  clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
+  clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
 
   if (options.handle) {
     if (typeof options.handle !== 'function' && typeof options.handle !== 'object') {
@@ -54,10 +66,24 @@ HapiServer.prototype.addRoute = function(path, options) {
         appData: {
           data: attrs.appData,
           path: request.path
+        },
+        start: function(locationType) {
+          var o = "<script type='text/javascript'>";
+          o += "(function() {\n";
+          o += "\tvar bootstapData = "+JSON.stringify(attrs.appData)+";\n";
+          o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
+          o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
+          o += "\tReactionRouter.start(bootstapData, '"+locationType+"', document.body);\n";
+          o += "})();\n";
+          o += "</script>";
+
+          return o;
         }
       }
 
-      reply.view('index', templateVars);
+      var layoutTemplate = require(templatesDir + '/layout.jsx');
+      var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
+      reply(markup);
     }
   }
 
