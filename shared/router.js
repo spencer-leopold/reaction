@@ -310,8 +310,16 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
     else {
       // Attach the React component, it's originally set as
       // a string to prevent having to require all components
-      // in the routes.js file
+      // in the routes configuration
       route.handler = this.loadComponent(route.handler);
+
+      if (route.handler.willTransitionTo) {
+        route.onEnter = route.handler.willTransitionTo;
+      }
+
+      if (route.handler.willTransitionFrom) {
+        route.onLeave = route.handler.willTransitionFrom;
+      }
 
       reactRoute = ReactRouter.createRoute(route);
     }
