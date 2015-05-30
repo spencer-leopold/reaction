@@ -5,6 +5,7 @@ var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
 
 var ReactionRouter = require('./shared/router');
+var Fetcher = require('./shared/fetcher');
 var Route = require('./shared/components/Route');
 var DefaultRoute = require('./shared/components/DefaultRoute');
 var NotFoundRoute = require('./shared/components/NotFoundRoute');
@@ -23,6 +24,12 @@ module.exports = {
   NotFoundRoute: NotFoundRoute,
   Redirect: Redirect,
   Prefetch: Prefetch,
+  route: React.createFactory(Route),
+  defaultRoute: React.createFactory(DefaultRoute),
+  notFoundRoute: React.createFactory(NotFoundRoute),
+  redirect: React.createFactory(Redirect),
+  preFetch: React.createFactory(Prefetch),
+  Fetcher: Fetcher,
   Router: function(options) {
     return new ReactionRouter(options);
   },
