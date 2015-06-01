@@ -34,6 +34,11 @@ module.exports = function(options) {
           // request object to be used with templates
           req.attributes = {};
           req.attributes.body = markup;
+
+          if (!data.path) {
+            data.path = req.path;
+          }
+
           req.attributes.appData = data;
           next();
         });

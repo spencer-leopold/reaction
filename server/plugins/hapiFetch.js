@@ -23,6 +23,11 @@ exports.register = function(server, options, next) {
           // request object to be used with templates
           request.attributes = {};
           request.attributes.body = markup;
+
+          if (!data.path) {
+            data.path = request.path;
+          }
+
           request.attributes.appData = data;
           reply.continue();
         });

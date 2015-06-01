@@ -104,7 +104,7 @@ METHODS.forEach(function(method) {
 
       request.end(function(err, res) {
         if (res.status === 404) {
-          reject(new Error('not found'));
+          reject(new Error('404 not found'));
         }
         else {
           var data = res.body;

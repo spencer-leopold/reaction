@@ -393,7 +393,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     window.onload = function() {
       ReactRouter.run(that.buildRoutes(), locationType, function (Handler, state) {
         if (appData && typeof appData === 'object' && appData.path === state.path) {
-          React.render(React.createFactory(Handler)(appData), el);
+          React.render(React.createFactory(Handler)({ data: appData }), el);
         }
         else {
           Fetcher.fetchData(state.routes, state.params).then(function(data) {
