@@ -70,10 +70,10 @@ HapiServer.prototype.addRoute = function(path, options) {
         start: function(locationType) {
           var o = "<script type='text/javascript'>";
           o += "(function() {\n";
-          o += "\tvar bootstapData = "+JSON.stringify(attrs.appData)+";\n";
+          o += "\tvar bootstrapData = "+JSON.stringify(attrs.appData)+";\n";
           o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
           o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
-          o += "\tReactionRouter.start(bootstapData, '"+locationType+"', document.body);\n";
+          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', document.body);\n";
           o += "})();\n";
           o += "</script>";
 
