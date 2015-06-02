@@ -37,11 +37,11 @@ HapiServer.prototype.addRoute = function(path, options) {
 
   // Rewrite app paths for use on client-side
   var clientOptions = _.cloneDeep(this.router.options);
-  // clientOptions.entryPath = '';
-  // clientOptions.paths.entryPath = '';
-  // clientOptions.paths.routes = clientOptions.paths.routes.replace(entryPath, '');
-  // clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
-  // clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
+  clientOptions.entryPath = '';
+  clientOptions.paths.entryPath = '';
+  clientOptions.paths.routes = clientOptions.paths.routes.replace(entryPath, '');
+  clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
+  clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
 
   if (options.handle) {
     if (typeof options.handle !== 'function' && typeof options.handle !== 'object') {
