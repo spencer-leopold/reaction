@@ -13,38 +13,53 @@ var Redirect = require('./shared/components/Redirect');
 var Prefetch = require('./shared/components/Prefetch');
 var isServer = (typeof window === 'undefined') ? true : false;
 
-module.exports = {
-  React: React,
-  ReactAddons: ReactAddons,
-  ReactRouter: ReactRouter,
-  RouteHandler: RouteHandler,
-  Link: Link,
-  Route: Route,
-  DefaultRoute: DefaultRoute,
-  NotFoundRoute: NotFoundRoute,
-  Redirect: Redirect,
-  Prefetch: Prefetch,
-  route: React.createFactory(Route),
-  defaultRoute: React.createFactory(DefaultRoute),
-  notFoundRoute: React.createFactory(NotFoundRoute),
-  redirect: React.createFactory(Redirect),
-  preFetch: React.createFactory(Prefetch),
-  Fetcher: Fetcher,
-  Router: function(options) {
-    return new ReactionRouter(options);
-  },
-  attachApp: function(options, serverInstance) {
-    var Server;
+exports.React = React;
 
-    if (serverInstance.response) {
-      var expressRoute = './server/expressServer';
-      Server = require(expressRoute);
-    }
-    else {
-      var hapiRoute = './server/hapiServer';
-      Server = require(hapiRoute);
-    }
+exports.ReactAddons = ReactAddons;
 
-    return new Server(options, serverInstance);
+exports.ReactRouter = ReactRouter;
+
+exports.RouteHandler = RouteHandler;
+
+exports.Link = Link;
+
+exports.Route = Route;
+
+exports.DefaultRoute = DefaultRoute;
+
+exports.NotFoundRoute = NotFoundRoute;
+
+exports.Redirect = Redirect;
+
+exports.Prefetch = Prefetch;
+
+exports.route = React.createFactory(Route);
+
+exports.defaultRoute = React.createFactory(DefaultRoute);
+
+exports.notFoundRoute = React.createFactory(NotFoundRoute);
+
+exports.redirect = React.createFactory(Redirect);
+
+exports.preFetch = React.createFactory(Prefetch);
+
+exports.Fetcher = Fetcher;
+
+exports.Router = function(options) {
+  return new ReactionRouter(options);
+};
+
+exports.attachApp = function(options, serverInstance) {
+  var Server;
+
+  if (serverInstance.response) {
+    var expressRoute = './server/expressServer';
+    Server = require(expressRoute);
   }
+  else {
+    var hapiRoute = './server/hapiServer';
+    Server = require(hapiRoute);
+  }
+
+  return new Server(options, serverInstance);
 }

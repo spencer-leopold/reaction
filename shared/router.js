@@ -94,7 +94,6 @@ ReactionRouter.prototype.setRoutes = function(route) {
     else {
       var currentComponentRoute = this.componentRoutes[route.name];
 
-      // @TODO: Add deep extend
       if (currentComponentRoute.childRoutes && route.childRoutes) {
         route.childRoutes = this.extendChildRoutes(route.childRoutes, currentComponentRoute.childRoutes);
       }
