@@ -1,6 +1,3 @@
-//
-// @TODO: Option to support React Router Components?
-//
 var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
