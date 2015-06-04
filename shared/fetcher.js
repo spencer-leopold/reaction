@@ -43,8 +43,11 @@ Fetcher.prototype.fetchRouteData = function(routes, params, data) {
       var info = route.handler.fetchData(params);
       var method = info.method || 'get';
       var url = info.url;
+      var requestData = info.data || {};
+      var headers = info.headers || {};
+      var cache = info.cache || true;
 
-      return self[method](url).then(function(d) {
+      return self[method](url, requestData, headers, cache).then(function(d) {
         return data[route.name] = d;
       });
     })
@@ -70,8 +73,11 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
           var info = component.fetchData(params);
           var method = info.method || 'get';
           var url = info.url;
+          var requestData = info.data || {};
+          var headers = info.headers || {};
+          var cache = (typeof info.cache === 'undefined') ? true : false;
 
-          return self[method](url).then(function(d) {
+          return self[method](url, requestData, headers, cache).then(function(d) {
             return data[name] = d;
           });
         })
@@ -85,7 +91,7 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
 }
 
 METHODS.forEach(function(method) {
-  Fetcher.prototype[method] = function(url, data, headers, freshFetch) {
+  Fetcher.prototype[method] = function(url, data, headers, cacheResponse) {
     var that = this;
     var request;
 
@@ -93,7 +99,8 @@ METHODS.forEach(function(method) {
       url = this.baseUrl + url;
     }
 
-    if (method === 'get' && this._cache[url] && !freshFetch) {
+    if (method === 'get' && this._cache[url] && cacheResponse) {
+      console.log('getting cached: %s', url);
       return Promise.resolve(this._cache[url]);
     }
 
