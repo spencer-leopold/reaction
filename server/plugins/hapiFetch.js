@@ -1,6 +1,7 @@
 var React = require('react');
 var ReactRouter = require('react-router');
-var fetcher = require('../../shared/fetcher');
+var ReactionFetcher = require('../../shared/fetcher');
+var fetcher = new ReactionFetcher();
 
 exports.register = function(server, options, next) {
 

@@ -33,12 +33,18 @@ Fetcher.prototype.fetchData = function(routes, params) {
 }
 
 Fetcher.prototype.fetchRouteData = function(routes, params, data) {
+  var self = this;
+
   return Promise.all(routes
     .filter(function(route) {
       return route.handler.fetchData;
     })
     .map(function(route) {
-      return route.handler.fetchData(params).then(function(d) {
+      var info = route.handler.fetchData(params);
+      var method = info.method || 'get';
+      var url = info.url;
+
+      return self[method](url).then(function(d) {
         return data[route.name] = d;
       });
     })
@@ -48,6 +54,8 @@ Fetcher.prototype.fetchRouteData = function(routes, params, data) {
 }
 
 Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
+  var self = this;
+
   return Promise.all(routes
     .filter(function(route) {
       return route.prefetchHandlers;
@@ -59,7 +67,11 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
         })
         .map(function(component) {
           var name = component.name.toLowerCase();
-          return component.fetchData(params).then(function(d) {
+          var info = component.fetchData(params);
+          var method = info.method || 'get';
+          var url = info.url;
+
+          return self[method](url).then(function(d) {
             return data[name] = d;
           });
         })
@@ -119,4 +131,4 @@ METHODS.forEach(function(method) {
   }
 });
 
-module.exports = new Fetcher();
+module.exports = Fetcher;
