@@ -10,7 +10,8 @@ function ExpressServer(options, serverInstance) {
 
   BaseServer.call(this, options, serverInstance);
 
-  this.attachMiddleware();
+  this.attachProxyMiddleware();
+  this.attachFetcherMiddleware();
   this.attachRoutes();
 
   return this.server;
@@ -43,13 +44,13 @@ ExpressServer.prototype.addRoute = function(path, options) {
       throw new Error('Route handle must be a function');
     }
     else {
-      handler = function(request, response) {
-        options.handle(request, response);
+      handler = function(request, response, next) {
+        options.handle(request, response, next);
       }
     }
   }
   else {
-    handler = function(request, response) {
+    handler = function(request, response, next) {
       var attrs = request.attributes || {};
       var templateVars = {
         body: attrs.body,
@@ -74,17 +75,23 @@ ExpressServer.prototype.addRoute = function(path, options) {
       var layoutTemplate = require(templatesDir + '/layout.jsx');
       var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
       response.send(markup);
+      next();
     }
   }
 
   this.expressRouter.get(path, handler);
 }
 
-ExpressServer.prototype.attachMiddleware = function() {
+
+ExpressServer.prototype.attachProxyMiddleware = function() {
+  var apiConfig = this.options.api;
+  this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
+}
+
+ExpressServer.prototype.attachFetcherMiddleware = function() {
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
   var serverRoutesObj = this.serverRoutesObj;
-  var apiConfig = this.options.api;
 
   var middlewareOptions = {
     reactRoutes: reactRoutes,
@@ -93,7 +100,6 @@ ExpressServer.prototype.attachMiddleware = function() {
   }
 
   this.server.use(require('./middleware/expressFetch')(middlewareOptions));
-  this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
 }
 
 ExpressServer.prototype.attachRoutes = function() {
