@@ -56,6 +56,18 @@ ReactionRouter.prototype.loadRoutesFromFile = function() {
   return routesFile;
 }
 
+ReactionRouter.prototype.loadRoutesFromComponent = function(entryPoints) {
+  if (entryPoints.constructor !== Array) {
+    throw new Error('entryPoints needs to be an array');
+  }
+
+  _.forEach(entryPoints, function(entryPoint) {
+    var component = this.loadComponent(entryPoint);
+    var routes = component.routes();
+    this.parseRoute(routes);
+  }.bind(this));
+}
+
 ReactionRouter.prototype.prefixRoutePath = function(path) {
   var mountPath = this.options.mountPath;
 
@@ -225,18 +237,6 @@ ReactionRouter.prototype.parseRoute = function(routes) {
   if (childRoutes) {
     this.buildComponentRoutes(childRoutes, parentRoute);
   }
-}
-
-ReactionRouter.prototype.loadRoutesFromComponent = function(entryPoints) {
-  if (entryPoints.constructor !== Array) {
-    throw new Error('entryPoints needs to be an array');
-  }
-
-  _.forEach(entryPoints, function(entryPoint) {
-    var component = this.loadComponent(entryPoint);
-    var routes = component.routes();
-    this.parseRoute(routes);
-  }.bind(this));
 }
 
 ReactionRouter.prototype.buildRoutes = function() {

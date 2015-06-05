@@ -4,7 +4,7 @@ function EventDispatcher() {
 
 EventDispatcher.prototype.on = function(event, fn, ctx) {
   this._listeners[event] = this._listeners[event] || [];
-  this._listeners[event].push({ fn: fn, ctx: ctx });
+  this._listeners[event].push({ fn: fn, ctx: ctx || this });
 }
 
 EventDispatcher.prototype.remove = function(event, fn) {
@@ -29,9 +29,9 @@ EventDispatcher.prototype.remove = function(event, fn) {
 }
 
 /*
- * The trigger method triggers all scopes of an event.  So if you have an event
- * binding to `route` and the event `route:add` is triggered, the binding for
- * `route` is called as well as anything bound to `route:add`
+ * Triggers all scopes of an event.  So if you have an event listener
+ * on "route" and the event "route:add" is triggered, the event for
+ * "route" is called as well as anything listening to "route:add"
  */
 EventDispatcher.prototype.trigger = function(event) {
   var evt = '';
@@ -57,6 +57,20 @@ EventDispatcher.prototype.trigger = function(event) {
         var listener = listeners[j];
         listener.fn.apply(listener.ctx || this, Array.prototype.slice.call(arguments, 1))
       }
+    }
+
+    this.triggerAllEvent(evt);
+  }
+}
+
+EventDispatcher.prototype.triggerAllEvent = function(evt) {
+  if (this._listeners['all'] instanceof Array) {
+    var listeners = this._listeners['all'];
+    var listeners_length = listeners.length;
+
+    for (var j = 0; j < listeners_length; j++) {
+      var listener = listeners[j];
+      listener.fn.apply(listener.ctx || this, arguments)
     }
   }
 }

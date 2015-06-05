@@ -12,7 +12,20 @@ function Fetcher() {
 }
 
 Fetcher.prototype.setBaseUrl = function(options) {
-  this.baseUrl = options.protocol + '://' + options.host + ':' +options.port;
+  var url;
+
+  if (!options.host) {
+    throw new Error('Host name must be provided');
+  }
+
+  url += options.protocol || 'http';
+  url += '://' + options.host;
+
+  if (options.port) {
+    url += ':' + options.port;
+  }
+  
+  this.baseUrl = url;
 }
 
 Fetcher.prototype.setHeaderValue = function(key, val) {

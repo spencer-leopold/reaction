@@ -3,7 +3,6 @@ var sinon = require('sinon');
 var sinonChai = require('sinon-chai');
 var Events = require('../../shared/events');
 var should = chai.should();
-// var expect = chai.expect;
 
 chai.use(sinonChai);
 
@@ -64,25 +63,42 @@ describe('shared/events', function() {
     });
 
     describe('#trigger()', function() {
+
+      beforeEach(function() {
+        fnSpy1 = sinon.spy();
+        fnSpy2 = sinon.spy();
+      });
+
       it('should trigger function attached to an event', function() {
-        var fnSpy = sinon.spy();
-        Events.on('test', fnSpy);
+        Events.on('test', fnSpy1);
         Events.trigger('test');
-        fnSpy.should.have.been.calledOnce;
+        fnSpy1.should.have.been.calledOnce;
         Events.trigger('test');
-        fnSpy.should.have.been.calledTwice;
+        fnSpy1.should.have.been.calledTwice;
         Events.remove('test');
       });
 
       it('should call all parent events', function() {
-        var fnSpy1 = sinon.spy();
-        var fnSpy2 = sinon.spy();
         Events.on('test', fnSpy1);
         Events.on('test:scope', fnSpy2);
         Events.trigger('test:scope');
         Events.trigger('test');
         fnSpy2.should.have.been.calledOnce;
         fnSpy1.should.have.been.calledTwice;
+        Events.remove('test');
+        Events.remove('test:scope');
+      });
+
+      it('should trigger the "all" event', function() {
+        Events.on('all', fnSpy1);
+        Events.on('test', fnSpy2);
+        Events.on('test:scope', fnSpy2);
+        Events.trigger('test:scope');
+        fnSpy2.should.have.been.calledTwice;
+        fnSpy1.should.have.been.calledTwice;
+        fnSpy1.args[0][0].should.equal('test');
+        fnSpy1.args[1][0].should.equal('test:scope');
+        Events.remove('all');
         Events.remove('test');
         Events.remove('test:scope');
       });
