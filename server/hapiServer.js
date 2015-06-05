@@ -13,7 +13,7 @@ function HapiServer(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
-  BaseServer.call(this, options, serverInstance);
+  BaseServer.call(this, options);
 
   this.attachPlugins();
 

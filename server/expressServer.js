@@ -8,7 +8,7 @@ function ExpressServer(options, serverInstance) {
   this.server = serverInstance;
   this.expressRouter = express.Router();
 
-  BaseServer.call(this, options, serverInstance);
+  BaseServer.call(this, options);
 
   this.attachProxyMiddleware();
   this.attachFetcherMiddleware();

@@ -1,7 +1,7 @@
 var Router = require('../../shared/router');
 var Events = require('../../shared/events');
 
-function BaseServer(options, serverInstance) {
+function BaseServer(options) {
   // @TODO: Add some error checking for options
   this.options = options || {};
   this.serverRoutePaths = [];
