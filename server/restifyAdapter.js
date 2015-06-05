@@ -1,12 +1,12 @@
-var BaseServer = require('./base/server');
+var BaseServerAdapter = require('./base/serverAdapter');
 var util = require('util');
 var express = require('express');
 
-function RestifyServer(options, serverInstance) {
+function RestifyAdapter(options, serverInstance) {
   this.server = serverInstance;
   this.expressRouter = express.Router();
 
-  BaseServer.call(this, options, serverInstance);
+  BaseServerAdapter.call(this, options, serverInstance);
 
   this.attachMiddleware();
   this.attachRoutes();
@@ -17,13 +17,13 @@ function RestifyServer(options, serverInstance) {
 /**
  * Extend base Server class
  */
-util.inherits(RestifyServer, BaseServer);
+util.inherits(RestifyAdapter, BaseServerAdapter);
 
-RestifyServer.prototype.formatParams = function(path) {
+RestifyAdapter.prototype.formatParams = function(path) {
   return path;
 }
 
-RestifyServer.prototype.addRoute = function(path, options) {
+RestifyAdapter.prototype.addRoute = function(path, options) {
   var handler;
 
   if (options.handle) {
@@ -54,7 +54,7 @@ RestifyServer.prototype.addRoute = function(path, options) {
   this.expressRouter.get(path, handler);
 }
 
-RestifyServer.prototype.attachMiddleware = function() {
+RestifyAdapter.prototype.attachMiddleware = function() {
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
   var serverRoutesObj = this.serverRoutesObj;
@@ -70,8 +70,8 @@ RestifyServer.prototype.attachMiddleware = function() {
   this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
 }
 
-RestifyServer.prototype.attachRoutes = function() {
+RestifyAdapter.prototype.attachRoutes = function() {
   this.server.use(this.expressRouter);
 }
 
-module.exports = RestifyServer;
+module.exports = RestifyAdapter;

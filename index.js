@@ -53,12 +53,12 @@ exports.attachApp = function(options, serverInstance) {
   var Server;
 
   if (serverInstance.response) {
-    var expressRoute = './server/expressServer';
-    Server = require(expressRoute);
+    var expressAdapter = './server/expressAdapter';
+    Server = require(expressAdapter);
   }
   else {
-    var hapiRoute = './server/hapiServer';
-    Server = require(hapiRoute);
+    var hapiAdapter = './server/hapiAdapter';
+    Server = require(hapiAdapter);
   }
 
   return new Server(options, serverInstance);

@@ -1,14 +1,14 @@
-var BaseServer = require('./base/server');
+var BaseServerAdapter = require('./base/serverAdapter.js');
 var React = require('react');
 var util = require('util');
 var express = require('express');
 var _ = require('../shared/lodash.custom');
 
-function ExpressServer(options, serverInstance) {
+function ExpressAdapter(options, serverInstance) {
   this.server = serverInstance;
   this.expressRouter = express.Router();
 
-  BaseServer.call(this, options);
+  BaseServerAdapter.call(this, options);
 
   this.attachProxyMiddleware();
   this.attachFetcherMiddleware();
@@ -20,13 +20,13 @@ function ExpressServer(options, serverInstance) {
 /**
  * Extend base Server class
  */
-util.inherits(ExpressServer, BaseServer);
+util.inherits(ExpressAdapter, BaseServerAdapter);
 
-ExpressServer.prototype.formatParams = function(path) {
+ExpressAdapter.prototype.formatParams = function(path) {
   return path;
 }
 
-ExpressServer.prototype.addRoute = function(path, options) {
+ExpressAdapter.prototype.addRoute = function(path, options) {
   var handler;
   var entryPath = this.router.options.entryPath;
   var templatesDir = this.router.options.paths.templatesDir;
@@ -83,12 +83,12 @@ ExpressServer.prototype.addRoute = function(path, options) {
 }
 
 
-ExpressServer.prototype.attachProxyMiddleware = function() {
+ExpressAdapter.prototype.attachProxyMiddleware = function() {
   var apiConfig = this.options.api;
   this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
 }
 
-ExpressServer.prototype.attachFetcherMiddleware = function() {
+ExpressAdapter.prototype.attachFetcherMiddleware = function() {
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
   var serverRoutesObj = this.serverRoutesObj;
@@ -102,8 +102,8 @@ ExpressServer.prototype.attachFetcherMiddleware = function() {
   this.server.use(require('./middleware/expressFetch')(middlewareOptions));
 }
 
-ExpressServer.prototype.attachRoutes = function() {
+ExpressAdapter.prototype.attachRoutes = function() {
   this.server.use(this.expressRouter);
 }
 
-module.exports = ExpressServer;
+module.exports = ExpressAdapter;

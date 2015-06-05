@@ -1,9 +1,9 @@
 var React = require('react');
-var BaseServer = require('./base/server');
+var BaseServerAdapter = require('./base/serverAdapter.js');
 var util = require('util');
 var _ = require('../shared/lodash.custom');
 
-function HapiServer(options, serverInstance) {
+function HapiAdapter(options, serverInstance) {
   if (!options.appName && !options.mountPath) {
     this.server = serverInstance;
   }
@@ -13,7 +13,7 @@ function HapiServer(options, serverInstance) {
     this.server = server.select(serverName);
   }
 
-  BaseServer.call(this, options);
+  BaseServerAdapter.call(this, options);
 
   this.attachPlugins();
 
@@ -23,14 +23,14 @@ function HapiServer(options, serverInstance) {
 /**
  * Extend base Server class
  */
-util.inherits(HapiServer, BaseServer);
+util.inherits(HapiAdapter, BaseServerAdapter);
 
-HapiServer.prototype.formatParams = function(path) {
+HapiAdapter.prototype.formatParams = function(path) {
   var formattedPath = path.replace(/\:([^\/\s]*)/g, '{$1}');
   return formattedPath;
 }
 
-HapiServer.prototype.addRoute = function(path, options) {
+HapiAdapter.prototype.addRoute = function(path, options) {
   var handler;
   var entryPath = this.router.options.entryPath;
   var templatesDir = this.router.options.paths.templatesDir;
@@ -94,7 +94,7 @@ HapiServer.prototype.addRoute = function(path, options) {
   });
 }
 
-HapiServer.prototype.attachPlugins = function() {
+HapiAdapter.prototype.attachPlugins = function() {
   // Add our fetcher to be used in getHandler
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
@@ -116,4 +116,4 @@ HapiServer.prototype.attachPlugins = function() {
   });
 }
 
-module.exports = HapiServer;
+module.exports = HapiAdapter;
