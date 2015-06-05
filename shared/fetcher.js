@@ -100,7 +100,6 @@ METHODS.forEach(function(method) {
     }
 
     if (method === 'get' && this._cache[url] && cacheResponse) {
-      console.log('getting cached: %s', url);
       return Promise.resolve(this._cache[url]);
     }
 
