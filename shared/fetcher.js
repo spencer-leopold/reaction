@@ -82,7 +82,7 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
           return component.fetchData;
         })
         .map(function(component) {
-          var name = component.name.toLowerCase();
+          var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params);
           var method = info.method || 'get';
           var url = info.url;

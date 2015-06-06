@@ -30,6 +30,7 @@ ExpressAdapter.prototype.addRoute = function(path, options) {
   var handler;
   var entryPath = this.router.options.entryPath;
   var templatesDir = this.router.options.paths.templatesDir;
+  var routeTemplate = options.template || 'layout';
 
   // Rewrite app paths for use on client-side
   var clientOptions = _.cloneDeep(this.router.options);
@@ -58,13 +59,16 @@ ExpressAdapter.prototype.addRoute = function(path, options) {
           data: attrs.appData,
           path: request.path
         },
-        start: function(locationType) {
+        start: function(locationType, replaceElement) {
+          if (!replaceElement) {
+            replaceElement = 'body';
+          }
           var o = "<script type='text/javascript'>";
           o += "(function() {\n";
           o += "\tvar bootstrapData = "+JSON.stringify(attrs.appData)+";\n";
           o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
           o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
-          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', document.body);\n";
+          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', document['"+replaceElement+"']);\n";
           o += "})();\n";
           o += "</script>";
 
@@ -72,7 +76,7 @@ ExpressAdapter.prototype.addRoute = function(path, options) {
         }
       }
 
-      var layoutTemplate = require(templatesDir + '/layout.jsx');
+      var layoutTemplate = require(templatesDir + '/' + routeTemplate);
       var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
       response.send(markup);
       next();
