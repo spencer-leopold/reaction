@@ -21,13 +21,11 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.12.4",
-    "hapi": "^8.5.1",
     "node-jsx": "^0.12.4",
     "qs2": "^0.6.6",
     "react": "^0.13.3",
     "react-router": "^0.13.3",
     "request": "^2.55.0",
-    "restify": "^3.0.3",
     "superagent": "^1.2.0",
     "when": "^3.7.3"
   },

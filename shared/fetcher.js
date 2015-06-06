@@ -12,7 +12,7 @@ function Fetcher() {
 }
 
 Fetcher.prototype.setBaseUrl = function(options) {
-  var url;
+  var url = '';
 
   if (!options.host) {
     throw new Error('Host name must be provided');
