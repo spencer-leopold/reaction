@@ -65,7 +65,7 @@ ReactionRouter.prototype.loadRoutesFromComponent = function(entryPoints) {
   _.forEach(entryPoints, function(entryPoint) {
     var component = this.loadComponent(entryPoint);
     var routes = component.routes();
-    this.parseRoute(routes);
+    this.parseRoutes(routes);
   }.bind(this));
 }
 
@@ -151,9 +151,9 @@ ReactionRouter.prototype.extendChildRoutes = function(source1, source2) {
 
 ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRoute, childRouteType) {
   if (!childRoute.name && childRoute.handler && childRouteType !== 'Redirect') {
-    var lastSlashPos = childRoute.handler.indexOf('/');
+    var lastSlashPos = childRoute.handler.lastIndexOf('/');
     var name = childRoute.handler.substring(lastSlashPos + 1, childRoute.handler.length);
-    childRoute.name = name.toLowerCase();
+    childRoute.name = name.charAt(0).toLowerCase() + name.substring(1);
   }
 
   if (!childRoute.path && childRoute.name && childRouteType !== 'Redirect') {
@@ -219,7 +219,7 @@ ReactionRouter.prototype.buildComponentRoutes = function(childRoutes, parentRout
   this.setRoutes(parentRoute);
 }
 
-ReactionRouter.prototype.parseRoute = function(routes) {
+ReactionRouter.prototype.parseRoutes = function(routes) {
   if (!routes) {
     return false;
   }
@@ -250,7 +250,7 @@ ReactionRouter.prototype.buildRoutes = function() {
 
   if (routeBuilder) {
     var routes = routeBuilder(ReactionRouterComponents);
-    this.parseRoute(routes);
+    this.parseRoutes(routes);
   }
 
   // Loop through componentRoutes object and add definitions
@@ -400,7 +400,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           if (route.template) {
             if (lastTemplate !== route.template) {
               needReload = true;
-              nextRoute = route.path;
+              nextRoute = state.path;
             }
             else {
               lastTemplate = route.template;

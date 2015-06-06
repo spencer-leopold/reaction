@@ -105,7 +105,7 @@ describe('shared/router', function() {
       });
     });
 
-    describe('#parseRoute()', function() {
+    describe('#parseRoutes()', function() {
       it('should remove the children key if exists', function() {
       });
 
