@@ -1,7 +1,8 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
-var Fetcher = require('./fetcher');
+var ReactionFetcher = require('./fetcher');
+var Fetcher = new ReactionFetcher();
 var Events = require('./events');
 var _ = require('./lodash.custom');
 var isServer = (typeof window === 'undefined');
@@ -9,7 +10,7 @@ var _currentRoute;
 
 function ReactionRouter(options) {
   this.routes = [];
-  this.componentRoutes = [];
+  this.componentRoutes = {};
   this._initOptions(options);
 }
 

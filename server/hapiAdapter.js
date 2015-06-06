@@ -34,6 +34,7 @@ HapiAdapter.prototype.addRoute = function(path, options) {
   var handler;
   var entryPath = this.router.options.entryPath;
   var templatesDir = this.router.options.paths.templatesDir;
+  var routeTemplate = options.template || 'layout';
 
   // Rewrite app paths for use on client-side
   var clientOptions = _.cloneDeep(this.router.options);
@@ -81,7 +82,7 @@ HapiAdapter.prototype.addRoute = function(path, options) {
         }
       }
 
-      var layoutTemplate = require(templatesDir + '/layout.jsx');
+      var layoutTemplate = require(templatesDir + '/' + routeTemplate);
       var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
       reply(markup);
     }

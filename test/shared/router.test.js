@@ -35,7 +35,7 @@ describe('shared/router', function() {
     var router;
 
     beforeEach(function() {
-      router = new Router({ entryPath: 'TestApp/' });
+      router = new Router({ entryPath: 'TestApp/', mountPath: '/testapp' });
     });
 
     describe('#getComponentPath()', function() {
@@ -45,26 +45,45 @@ describe('shared/router', function() {
       });
     });
 
-    describe('#loadComponent()', function() {
-      it('should load the component', function() {
-      });
-    });
-
-    describe('#loadRoutesFromFile()', function() {
-      it('should return a function', function() {
-      });
-    });
-
     describe('#prefixRoutePath()', function() {
       it('should append a mountPath to each absolute path', function() {
+        var path1 = router.prefixRoutePath('/path/of/route');
+        var path2 = router.prefixRoutePath('path/of/route');
+        path1.should.be.equal('/testapp/path/of/route');
+        path2.should.be.equal('path/of/route');
       });
     });
 
     describe('#setRoutes()', function() {
       it('should add top level routes to the instance', function() {
+        var route = {
+          name: 'second-level',
+          path: '/test/app/child',
+          handler: 'ChildHandler',
+          parent: {
+            name: 'top-level',
+            path: '/test/app',
+            handler: 'App'
+          }
+        }
+        router.setRoutes(route);
+        router.componentRoutes.should.deep.equal({ 'top-level': route.parent });
       });
 
-      it('should add recurse if the route is a child route', function() {
+      it('should recurse if the route is a child route', function() {
+        var spy = sinon.spy(router, 'setRoutes');
+        var route = {
+          name: 'second-level',
+          path: '/test/app/child',
+          handler: 'ChildHandler',
+          parent: {
+            name: 'top-level',
+            path: '/test/app',
+            handler: 'App'
+          }
+        }
+        router.setRoutes(route);
+        spy.should.have.been.calledTwice;
       });
     });
 
