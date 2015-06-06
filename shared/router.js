@@ -319,6 +319,10 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
       }
 
       reactRoute = ReactRouter.createRoute(route);
+
+      if (route.template) {
+        reactRoute.template = route.template;
+      }
     }
   }
 
@@ -388,15 +392,37 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     }
 
     window.onload = function() {
+      var firstLoad = true;
+      var lastTemplate, nextRoute, needReload;
+
       ReactRouter.run(that.buildRoutes(), locationType, function (Handler, state) {
-        if (appData && typeof appData === 'object' && appData.path === state.path) {
-          React.render(React.createFactory(Handler)({ data: appData }), el);
+        state.routes.forEach(function(route) {
+          if (route.template) {
+            if (lastTemplate !== route.template) {
+              needReload = true;
+              nextRoute = route.path;
+            }
+            else {
+              lastTemplate = route.template;
+            }
+          }
+        });
+
+        if (needReload && !firstLoad) {
+          window.location.href = nextRoute;
         }
         else {
-          Fetcher.fetchData(state.routes, state.params).then(function(data) {
-            React.render(React.createFactory(Handler)({ data: data }), el);
-          });
+          if (appData && typeof appData === 'object' && appData.path === state.path) {
+            React.render(React.createFactory(Handler)({ data: appData }), el);
+          }
+          else {
+            Fetcher.fetchData(state.routes, state.params).then(function(data) {
+              React.render(React.createFactory(Handler)({ data: data }), el);
+            });
+          }
         }
+
+        firstLoad = false;
       });
     }
   }
