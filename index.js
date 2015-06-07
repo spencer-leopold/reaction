@@ -11,7 +11,6 @@ var DefaultRoute = require('./shared/components/DefaultRoute');
 var NotFoundRoute = require('./shared/components/NotFoundRoute');
 var Redirect = require('./shared/components/Redirect');
 var Prefetch = require('./shared/components/Prefetch');
-var isServer = (typeof window === 'undefined') ? true : false;
 
 exports.React = React;
 
@@ -52,13 +51,20 @@ exports.Router = function(options) {
 exports.attachApp = function(options, serverInstance) {
   var Server;
 
-  if (serverInstance.response) {
-    var expressAdapter = './server/expressAdapter';
-    Server = require(expressAdapter);
+  if (options.serverAdapter) {
+    Server = require(options.serverAdapter);
   }
   else {
-    var hapiAdapter = './server/hapiAdapter';
-    Server = require(hapiAdapter);
+    // Use variables to require adapter modules so they
+    // don't get bundled by browserify
+    if (serverInstance.response) {
+      var expressAdapter = './server/expressAdapter';
+      Server = require(expressAdapter);
+    }
+    else {
+      var hapiAdapter = './server/hapiAdapter';
+      Server = require(hapiAdapter);
+    }
   }
 
   return new Server(options, serverInstance);

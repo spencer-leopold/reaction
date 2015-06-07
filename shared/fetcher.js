@@ -1,7 +1,6 @@
 var Promise = require('when');
 var Request = require('superagent');
 var _ = require('./lodash.custom');
-var isServer = (typeof window === 'undefined');
 
 var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
 
@@ -108,7 +107,7 @@ METHODS.forEach(function(method) {
     var that = this;
     var request;
 
-    if (isServer && url.charAt(0) === '/') {
+    if (this.baseUrl && url.charAt(0) === '/') {
       url = this.baseUrl + url;
     }
 
