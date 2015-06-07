@@ -1,7 +1,5 @@
-var React = require('react');
 var BaseServerAdapter = require('./base/serverAdapter.js');
 var util = require('util');
-var _ = require('../shared/lodash.custom');
 
 function HapiAdapter(options, serverInstance) {
   if (!options.appName && !options.mountPath) {
@@ -35,65 +33,7 @@ HapiAdapter.prototype.formatParams = function(path) {
 }
 
 HapiAdapter.prototype.addRoute = function(path, options) {
-  var handler;
-  var entryPath = this.router.options.entryPath;
-  var templatesDir = this.router.options.paths.templatesDir;
-  var routeTemplate = options.template || 'layout';
-
-  // Rewrite app paths for use on client-side
-  var clientOptions = _.cloneDeep(this.router.options);
-  clientOptions.entryPath = '';
-  clientOptions.paths.entryPath = '';
-  clientOptions.paths.routes = clientOptions.paths.routes.replace(entryPath, '');
-  clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
-  clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
-
-  if (options.handle) {
-    if (typeof options.handle !== 'function' && typeof options.handle !== 'object') {
-      throw new Error('Route handle must be an object or function');
-    }
-
-    if (typeof options.handle === 'object') {
-      handler = options.handle;
-    }
-
-    if (typeof options.handle === 'function') {
-      handler = function(request, reply) {
-        options.handle(request, reply);
-      }
-    }
-  }
-  else {
-    handler = function(request, reply) {
-      var reactionData = request.reactionData || {};
-      var templateVars = {
-        body: reactionData.body,
-        appData: {
-          data: reactionData.appData,
-          path: request.path
-        },
-        start: function(replaceElement, locationType) {
-          if (!replaceElement) {
-            replaceElement = 'document.body';
-          }
-          var o = "<script type='text/javascript'>";
-          o += "(function() {\n";
-          o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
-          o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
-          o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
-          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
-          o += "})();\n";
-          o += "</script>";
-
-          return o;
-        }
-      }
-
-      var layoutTemplate = require(templatesDir + '/' + routeTemplate);
-      var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
-      reply(markup);
-    }
-  }
+  var handler = this.buildHandler(options);
 
   this.server.route({
     method: 'GET',

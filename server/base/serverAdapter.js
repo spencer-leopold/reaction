@@ -1,5 +1,7 @@
+var React = require('react');
 var Router = require('../../shared/router');
 var Events = require('../../shared/events');
+var _ = require('../../shared/lodash.custom');
 
 function BaseServer(options) {
   // @TODO: Add some error checking for options
@@ -36,6 +38,75 @@ BaseServer.prototype.parseRoute = function(options, component, mainComponent) {
       }
     }
   }
+}
+
+BaseServer.prototype.buildHandler = function(options, responseMethod) {
+  var handler;
+  var entryPath = this.router.options.entryPath;
+  var templatesDir = this.router.options.paths.templatesDir;
+  var routeTemplate = options.template || 'layout';
+
+  // Rewrite app paths for use on client-side
+  var clientOptions = _.cloneDeep(this.router.options);
+  clientOptions.entryPath = '';
+  clientOptions.paths.entryPath = '';
+  clientOptions.paths.routes = clientOptions.paths.routes.replace(entryPath, '');
+  clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
+  clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
+
+  if (options.handle) {
+    if (typeof options.handle !== 'function') {
+      throw new Error('Route handle must be a function');
+    }
+    else {
+      handler = function(request, response, next) {
+        options.handle(request, response, next);
+      }
+    }
+  }
+  else {
+    handler = function(request, response, next) {
+      var reactionData = request.reactionData || {};
+      var templateVars = {
+        body: reactionData.body,
+        appData: {
+          data: reactionData.appData,
+          path: request.path
+        },
+        start: function(replaceElement, locationType) {
+          if (!replaceElement) {
+            replaceElement = 'document.body';
+          }
+          var o = "<script type='text/javascript'>";
+          o += "(function() {\n";
+          o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
+          o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
+          o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
+          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
+          o += "})();\n";
+          o += "</script>";
+
+          return o;
+        }
+      }
+
+      var layoutTemplate = require(templatesDir + '/' + routeTemplate);
+      var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
+
+      if (!responseMethod) {
+        response(markup);
+      }
+      else {
+        response[responseMethod](markup);
+      }
+
+      if (next) {
+        next();
+      }
+    }
+  }
+
+  return handler;
 }
 
 /**
