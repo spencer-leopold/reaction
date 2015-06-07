@@ -52,23 +52,23 @@ ExpressAdapter.prototype.addRoute = function(path, options) {
   }
   else {
     handler = function(request, response, next) {
-      var attrs = request.attributes || {};
+      var reactionData = request.reactionData || {};
       var templateVars = {
-        body: attrs.body,
+        body: reactionData.body,
         appData: {
-          data: attrs.appData,
+          data: reactionData.appData,
           path: request.path
         },
-        start: function(locationType, replaceElement) {
+        start: function(replaceElement, locationType) {
           if (!replaceElement) {
-            replaceElement = 'body';
+            replaceElement = 'document.body';
           }
           var o = "<script type='text/javascript'>";
           o += "(function() {\n";
-          o += "\tvar bootstrapData = "+JSON.stringify(attrs.appData)+";\n";
+          o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
           o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
           o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
-          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', document['"+replaceElement+"']);\n";
+          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
           o += "})();\n";
           o += "</script>";
 

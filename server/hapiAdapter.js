@@ -15,7 +15,11 @@ function HapiAdapter(options, serverInstance) {
 
   BaseServerAdapter.call(this, options);
 
-  this.attachPlugins();
+  this.attachFetcherPlugin();
+
+  if (options.api) {
+    this.attachApiProxyPlugin(options.api);
+  }
 
   return this.server;
 }
@@ -61,23 +65,23 @@ HapiAdapter.prototype.addRoute = function(path, options) {
   }
   else {
     handler = function(request, reply) {
-      var attrs = request.attributes || {};
+      var reactionData = request.reactionData || {};
       var templateVars = {
-        body: attrs.body,
+        body: reactionData.body,
         appData: {
-          data: attrs.appData,
+          data: reactionData.appData,
           path: request.path
         },
-        start: function(locationType, replaceElement) {
+        start: function(replaceElement, locationType) {
           if (!replaceElement) {
-            replaceElement = 'body';
+            replaceElement = 'document.body';
           }
           var o = "<script type='text/javascript'>";
           o += "(function() {\n";
-          o += "\tvar bootstrapData = "+JSON.stringify(attrs.appData)+";\n";
+          o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
           o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
           o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
-          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', document['"+replaceElement+"']);\n";
+          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
           o += "})();\n";
           o += "</script>";
 
@@ -98,7 +102,7 @@ HapiAdapter.prototype.addRoute = function(path, options) {
   });
 }
 
-HapiAdapter.prototype.attachPlugins = function() {
+HapiAdapter.prototype.attachFetcherPlugin = function() {
   // Add our fetcher to be used in getHandler
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
@@ -113,6 +117,17 @@ HapiAdapter.prototype.attachPlugins = function() {
   this.server.register({
     register: require('./plugins/hapiFetch'),
     options: pluginOptions
+  }, function(err) {
+    if (err) {
+      console.log(err);
+    }
+  });
+}
+
+HapiAdapter.prototype.attachApiProxyPlugin = function(apiConfig) {
+  this.server.register({
+    register: require('./plugins/apiProxy'),
+    options: apiConfig
   }, function(err) {
     if (err) {
       console.log(err);

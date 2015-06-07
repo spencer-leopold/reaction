@@ -5,8 +5,6 @@ var ReactionFetcher = require('./fetcher');
 var Fetcher = new ReactionFetcher();
 var Events = require('./events');
 var _ = require('./lodash.custom');
-var isServer = (typeof window === 'undefined');
-var _currentRoute;
 
 function ReactionRouter(options) {
   this.routes = [];
@@ -372,31 +370,36 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 ReactionRouter.prototype.start = function(appData, locationType, el) {
   var that = this;
 
-  if (!isServer) {
-    if (typeof locationType !== 'function') {
-      switch(locationType) {
-        case 'Hash':
-          locationType = ReactRouter.HashLocation;
-          break;
-        case 'Refresh':
-          locationType = ReactRouter.RefreshLocation;
-          break;
-        case 'Static':
-          locationType = ReactRouter.StaticLocation;
-          break;
-        case 'History':
-        default:
-          locationType = ReactRouter.HistoryLocation;
-          break;
-      }
+  if (typeof locationType !== 'function') {
+    switch(locationType) {
+      case 'Hash':
+        locationType = ReactRouter.HashLocation;
+        break;
+      case 'Refresh':
+        locationType = ReactRouter.RefreshLocation;
+        break;
+      case 'Static':
+        locationType = ReactRouter.StaticLocation;
+        break;
+      case 'History':
+      default:
+        locationType = ReactRouter.HistoryLocation;
+        break;
     }
+  }
 
-    window.onload = function() {
-      var firstLoad = true;
-      var lastTemplate, nextRoute, needReload;
+  window.onload = function() {
+    var firstLoad = true;
+    var lastTemplate, nextRoute, needReload = false;
 
-      ReactRouter.run(that.buildRoutes(), locationType, function (Handler, state) {
-        state.routes.forEach(function(route) {
+    ReactRouter.run(that.buildRoutes(), locationType, function (Handler, state) {
+      // Check if route changes the main template and the app isn't
+      // using RefreshLocation.
+      // If it does we need to temporarily kill the SPA
+      // in order to render full markup (with the new template)
+      // sent from the server
+      if (locationType !== 'Refresh') {
+        _.forEach(state.routes, function(route) {
           if (route.template) {
             if (lastTemplate !== route.template) {
               needReload = true;
@@ -407,24 +410,26 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
             }
           }
         });
+      }
 
-        if (needReload && !firstLoad) {
-          window.location.href = nextRoute;
+      if (needReload && !firstLoad) {
+        // @TODO: this breaks History and using browser back button
+        // goes back to the current page.  Need to fix.
+        window.location.href = nextRoute;
+      }
+      else {
+        if (appData && typeof appData === 'object' && appData.path === state.path) {
+          React.render(React.createFactory(Handler)({ data: appData }), el);
         }
         else {
-          if (appData && typeof appData === 'object' && appData.path === state.path) {
-            React.render(React.createFactory(Handler)({ data: appData }), el);
-          }
-          else {
-            Fetcher.fetchData(state.routes, state.params).then(function(data) {
-              React.render(React.createFactory(Handler)({ data: data }), el);
-            });
-          }
+          Fetcher.fetchData(state.routes, state.params).then(function(data) {
+            React.render(React.createFactory(Handler)({ data: data }), el);
+          });
         }
+      }
 
-        firstLoad = false;
-      });
-    }
+      firstLoad = false;
+    });
   }
 }
 
