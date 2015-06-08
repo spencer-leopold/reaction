@@ -10,20 +10,7 @@ function Fetcher() {
   this.headers = {};
 }
 
-Fetcher.prototype.setBaseUrl = function(options) {
-  var url = '';
-
-  if (!options.host) {
-    throw new Error('Host name must be provided');
-  }
-
-  url += options.protocol || 'http';
-  url += '://' + options.host;
-
-  if (options.port) {
-    url += ':' + options.port;
-  }
-  
+Fetcher.prototype.setBaseUrl = function(url) {
   this.baseUrl = url;
 }
 

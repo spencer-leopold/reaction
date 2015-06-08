@@ -13,8 +13,6 @@ function HapiAdapter(options, serverInstance) {
 
   BaseServerAdapter.call(this, options);
 
-  this.attachFetcherPlugin();
-
   if (options.api) {
     this.attachApiProxyPlugin(options.api);
   }
@@ -42,21 +40,11 @@ HapiAdapter.prototype.addRoute = function(path, options) {
   });
 }
 
-HapiAdapter.prototype.attachFetcherPlugin = function() {
-  // Add our fetcher to be used in getHandler
-  var reactRoutes = this.router.routes;
-  var serverRoutePaths = this.serverRoutePaths;
-  var serverRoutesObj = this.serverRoutesObj;
-
-  var pluginOptions = {
-    reactRoutes: reactRoutes,
-    serverRoutePaths: serverRoutePaths,
-    serverRoutesObj: serverRoutesObj
-  }
+HapiAdapter.prototype.attachServerFetcher = function() {
+  var plugin = this.loadServerFetcher('plugin');
 
   this.server.register({
-    register: require('./plugins/hapiFetch'),
-    options: pluginOptions
+    register: plugin
   }, function(err) {
     if (err) {
       console.log(err);

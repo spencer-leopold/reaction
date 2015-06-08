@@ -9,7 +9,6 @@ function ExpressAdapter(options, serverInstance) {
   BaseServerAdapter.call(this, options);
 
   this.attachProxyMiddleware();
-  this.attachFetcherMiddleware();
   this.attachRoutes();
 
   return this.server;
@@ -29,24 +28,14 @@ ExpressAdapter.prototype.addRoute = function(path, options) {
   this.expressRouter.get(path, handler);
 }
 
-
 ExpressAdapter.prototype.attachProxyMiddleware = function() {
   var apiConfig = this.options.api;
   this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
 }
 
-ExpressAdapter.prototype.attachFetcherMiddleware = function() {
-  var reactRoutes = this.router.routes;
-  var serverRoutePaths = this.serverRoutePaths;
-  var serverRoutesObj = this.serverRoutesObj;
-
-  var middlewareOptions = {
-    reactRoutes: reactRoutes,
-    serverRoutePaths: serverRoutePaths,
-    serverRoutesObj: serverRoutesObj
-  }
-
-  this.server.use(require('./middleware/expressFetch')(middlewareOptions));
+ExpressAdapter.prototype.attachServerFetcher = function() {
+  var middleware = this.loadServerFetcher();
+  this.server.use(middleware);
 }
 
 ExpressAdapter.prototype.attachRoutes = function() {

@@ -5,11 +5,11 @@ var ReactionFetcher = require('../../shared/fetcher');
 module.exports = function(options) {
   var fetcher = new ReactionFetcher();
 
-  return function(request, baseUrl, path, next, nextCtx) {
-    var cont = (!nextCtx) ? next : next.bind(nextCtx);
+  return function(request, baseUrl, path, callback, cbContext) {
+    var next = (!cbContext) ? callback : callback.bind(cbContext);
 
-    if (options.serverRoutePaths.indexOf(path) === -1) {
-      cont();
+    if (options.serverRoutes.indexOf(path) === -1) {
+      next();
     }
     else {
       // need to set the baseUrl, otherwise fetching relative paths
@@ -17,7 +17,7 @@ module.exports = function(options) {
       fetcher.setBaseUrl(baseUrl);
 
       // React-Router functionality
-      ReactRouter.run(options.reactRoutes, path, function(Handler, state) {
+      ReactRouter.run(options.clientRoutes, path, function(Handler, state) {
         fetcher.fetchData(state.routes, state.params).then(function(data) {
           var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
 
@@ -32,10 +32,9 @@ module.exports = function(options) {
             appData: data
           };
 
-          cont();
+          next();
         });
       });
     }
-
   }
 }
