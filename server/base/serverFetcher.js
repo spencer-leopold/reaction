@@ -3,6 +3,7 @@ var fetcherPlugin = function(callback) {
     register: function(server, options, next) {
       server.ext('onPreHandler', function(request, reply) {
         var baseUrl = server.info.protocol + '://' + server.info.host + ':' + server.info.port;
+        var next = reply.continue.bind(reply);
         callback(request, baseUrl, request.route.path, reply.continue, reply);
       });
 

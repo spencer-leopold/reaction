@@ -8,9 +8,7 @@ function ExpressAdapter(options, serverInstance) {
 
   BaseServerAdapter.call(this, options);
 
-  this.attachProxyMiddleware();
   this.attachRoutes();
-
   return this.server;
 }
 
@@ -28,13 +26,13 @@ ExpressAdapter.prototype.addRoute = function(path, options) {
   this.expressRouter.get(path, handler);
 }
 
-ExpressAdapter.prototype.attachProxyMiddleware = function() {
-  var apiConfig = this.options.api;
-  this.server.use('/api', require('./middleware/apiProxy')(apiConfig));
-}
-
 ExpressAdapter.prototype.attachServerFetcher = function() {
   var middleware = this.loadServerFetcher();
+  this.server.use(middleware);
+}
+
+ExpressAdapter.prototype.attachApiProxy = function() {
+  var middleware = this.loadApiProxy();
   this.server.use(middleware);
 }
 

@@ -14,6 +14,10 @@ function BaseAdapter(options) {
   this.router.buildRoutes();
 
   this.attachServerFetcher();
+
+  if (options.api) {
+    this.attachApiProxy(options);
+  }
 }
 
 BaseAdapter.prototype.parseRoute = function(options, component, mainComponent) {
@@ -119,19 +123,30 @@ BaseAdapter.prototype.loadServerFetcher = function(type) {
   return require('./serverFetcher')(pluginOptions);
 }
 
+BaseAdapter.prototype.loadApiProxy = function(type) {
+  var pluginOptions = this.options;
+  pluginOptions.type = type;
+
+  return require('./apiProxy')(pluginOptions);
+}
+
 /**
  * Implement these methods in child class
  */
-BaseAdapter.prototype.attachServerFetcher = function(path, options) {
-  throw new Error('`attachServerFetcher` needs to be implemented');
-}
-
 BaseAdapter.prototype.addRoute = function(path, options) {
   throw new Error('`addRoute` needs to be implemented');
 }
 
 BaseAdapter.prototype.formatParams = function(path) {
   throw new Error('`formatParams` needs to be implemented');
+}
+
+BaseAdapter.prototype.attachServerFetcher = function(path, options) {
+  throw new Error('`attachServerFetcher` needs to be implemented');
+}
+
+BaseAdapter.prototype.attachApiProxy = function(options) {
+  throw new Error('`attachApiProxy` needs to be implemented');
 }
 
 module.exports = BaseAdapter;

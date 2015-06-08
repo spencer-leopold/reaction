@@ -2,20 +2,9 @@ var BaseServerAdapter = require('./base/serverAdapter.js');
 var util = require('util');
 
 function HapiAdapter(options, serverInstance) {
-  if (!options.appName && !options.mountPath) {
-    this.server = serverInstance;
-  }
-  else {
-    var serverName = (options.appName) ? options.appName : options.mountPath.replace(/^\//, '');
-    var server = serverInstance.connection({ port: options.port, labels: serverName });
-    this.server = server.select(serverName);
-  }
+  this.server = serverInstance;
 
   BaseServerAdapter.call(this, options);
-
-  if (options.api) {
-    this.attachApiProxyPlugin(options.api);
-  }
 
   return this.server;
 }
@@ -52,10 +41,11 @@ HapiAdapter.prototype.attachServerFetcher = function() {
   });
 }
 
-HapiAdapter.prototype.attachApiProxyPlugin = function(apiConfig) {
+HapiAdapter.prototype.attachApiProxy = function() {
+  var plugin = this.loadApiProxy('plugin');
+
   this.server.register({
-    register: require('./plugins/apiProxy'),
-    options: apiConfig
+    register: plugin
   }, function(err) {
     if (err) {
       console.log(err);
