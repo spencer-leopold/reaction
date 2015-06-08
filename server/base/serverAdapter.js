@@ -3,7 +3,7 @@ var Router = require('../../shared/router');
 var Events = require('../../shared/events');
 var _ = require('../../shared/lodash.custom');
 
-function BaseServer(options) {
+function BaseAdapter(options) {
   // @TODO: Add some error checking for options
   this.options = options || {};
   this.serverRoutePaths = [];
@@ -16,7 +16,7 @@ function BaseServer(options) {
   this.attachServerFetcher();
 }
 
-BaseServer.prototype.parseRoute = function(options, component, mainComponent) {
+BaseAdapter.prototype.parseRoute = function(options, component, mainComponent) {
   var path = '', handler;
   options = options || {};
 
@@ -37,7 +37,7 @@ BaseServer.prototype.parseRoute = function(options, component, mainComponent) {
   }
 }
 
-BaseServer.prototype.buildHandler = function(options, responseMethod) {
+BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
   var handler;
   var entryPath = this.router.options.entryPath;
   var templatesDir = this.router.options.paths.templatesDir;
@@ -106,7 +106,7 @@ BaseServer.prototype.buildHandler = function(options, responseMethod) {
   return handler;
 }
 
-BaseServer.prototype.loadServerFetcher = function(type) {
+BaseAdapter.prototype.loadServerFetcher = function(type) {
   var reactRoutes = this.router.routes;
   var serverRoutePaths = this.serverRoutePaths;
 
@@ -122,16 +122,16 @@ BaseServer.prototype.loadServerFetcher = function(type) {
 /**
  * Implement these methods in child class
  */
-BaseServer.prototype.attachServerFetcher = function(path, options) {
+BaseAdapter.prototype.attachServerFetcher = function(path, options) {
   throw new Error('`attachServerFetcher` needs to be implemented');
 }
 
-BaseServer.prototype.addRoute = function(path, options) {
+BaseAdapter.prototype.addRoute = function(path, options) {
   throw new Error('`addRoute` needs to be implemented');
 }
 
-BaseServer.prototype.formatParams = function(path) {
+BaseAdapter.prototype.formatParams = function(path) {
   throw new Error('`formatParams` needs to be implemented');
 }
 
-module.exports = BaseServer;
+module.exports = BaseAdapter;
