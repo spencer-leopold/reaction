@@ -43,9 +43,12 @@ HapiAdapter.prototype.attachServerFetcher = function() {
 
 HapiAdapter.prototype.attachApiProxy = function() {
   var plugin = this.loadApiProxy('plugin');
+  var apiPath = this.options.apiPath || '/api';
 
-  this.server.register({
-    register: plugin
+  this.server.register({ register: plugin }, {
+    routes: {
+      prefix: apiPath
+    }
   }, function(err) {
     if (err) {
       console.log(err);

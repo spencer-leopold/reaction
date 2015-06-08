@@ -33,7 +33,8 @@ ExpressAdapter.prototype.attachServerFetcher = function() {
 
 ExpressAdapter.prototype.attachApiProxy = function() {
   var middleware = this.loadApiProxy();
-  this.server.use(middleware);
+  var apiPath = this.options.apiPath || '/api';
+  this.server.use(apiPath, middleware);
 }
 
 ExpressAdapter.prototype.attachRoutes = function() {

@@ -1,22 +1,12 @@
-var apiProxyPlugin = function(DataAdapter, apiPrefixes) {
+var apiProxyPlugin = function(dataAdapter) {
 
   var serverFetcher = {
     register: function(server, options, next) {
-      server.ext('onRequest', function(request, reply) {
-
-        var matches = apiPrefixes
-          .filter(function(apiPrefix) {
-            return ~request.url.path.indexOf(apiPrefix);
-          })
-          .map(function(apiPrefix) {
-            return apiPrefix;
-          });
-
-        if (matches.length) {
-          DataAdapter.request(request, reply, reply);
-        }
-        else {
-          reply.continue();
+      server.route({
+        method: '*',
+        path: '/{p*}',
+        handler: function(request, reply) {
+          dataAdapter.request(request, reply, reply);
         }
       });
 
@@ -32,34 +22,19 @@ var apiProxyPlugin = function(DataAdapter, apiPrefixes) {
   return serverFetcher;
 }
 
-var apiProxyMiddleware = function(DataAdapter, apiPrefixes) {
+var apiProxyMiddleware = function(dataAdapter) {
   return function(req, res, next) {
-    var matches = apiPrefixes
-      .filter(function(apiPrefix) {
-        return ~req.url.indexOf(apiPrefix);
-      })
-      .map(function(apiPrefix) {
-        return apiPrefix;
-      });
-
-    if (matches.length) {
-      DataAdapter.request(req, res, res.json);
-    }
-    else {
-      next();
-    }
+    dataAdapter.request(req, res, res.json);
   }
 }
 
 module.exports = function(options) {
-  var RestAdapter = require('../data_adapters/rest_adapter');
-  var DataAdapter = new RestAdapter(options);
-  var apiPrefixes = [options.api.apiPrefix];
+  var dataAdapter = new options.dataAdapter(options.api);
 
   if (options.type === 'plugin') {
-    return apiProxyPlugin(DataAdapter, apiPrefixes);
+    return apiProxyPlugin(dataAdapter);
   }
   else {
-    return apiProxyMiddleware(DataAdapter, apiPrefixes);
+    return apiProxyMiddleware(dataAdapter);
   }
 }

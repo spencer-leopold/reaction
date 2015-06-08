@@ -7,6 +7,7 @@ function BaseAdapter(options) {
   // @TODO: Add some error checking for options
   this.options = options || {};
   this.serverRoutePaths = [];
+
   // Listen for new routes and parse them
   Events.on('route:add', this.parseRoute, this);
   // Attach the router and trigger all routes to be built
@@ -15,8 +16,12 @@ function BaseAdapter(options) {
 
   this.attachServerFetcher();
 
-  if (options.api) {
-    this.attachApiProxy(options);
+  if (this.options.api) {
+    if (!this.options.dataAdapter) {
+      this.options.dataAdapter = require('../data_adapters/rest_adapter');
+    }
+
+    this.attachApiProxy(this.options);
   }
 }
 
@@ -124,8 +129,11 @@ BaseAdapter.prototype.loadServerFetcher = function(type) {
 }
 
 BaseAdapter.prototype.loadApiProxy = function(type) {
-  var pluginOptions = this.options;
-  pluginOptions.type = type;
+  var pluginOptions = {
+    type: type,
+    api: this.options.api,
+    dataAdapter: this.options.dataAdapter
+  }
 
   return require('./apiProxy')(pluginOptions);
 }
