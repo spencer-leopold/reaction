@@ -1,3 +1,5 @@
+var url = require('url');
+
 var fetcherPlugin = function(callback) {
   var serverFetcher = {
     register: function(server, options, next) {
