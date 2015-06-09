@@ -24,7 +24,8 @@ var apiProxyPlugin = function(dataAdapter) {
 
 var apiProxyMiddleware = function(dataAdapter) {
   return function(req, res, next) {
-    dataAdapter.request(req, res, res.json);
+    var callback = res.json.bind(res);
+    dataAdapter.request(req, res, callback);
   }
 }
 
