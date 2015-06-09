@@ -52,7 +52,7 @@ exports.attachApp = function(options, serverInstance) {
   var Server;
 
   if (options.serverAdapter) {
-    Server = require(options.serverAdapter);
+    Server = options.serverAdapter;
   }
   else {
     // Use variables to require adapter modules so they
