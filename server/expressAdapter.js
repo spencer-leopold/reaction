@@ -1,4 +1,4 @@
-var BaseServerAdapter = require('./base/serverAdapter.js');
+var BaseServerAdapter = require('./base/serverAdapter');
 var util = require('util');
 var express = require('express');
 
@@ -22,7 +22,7 @@ ExpressAdapter.prototype.formatParams = function(path) {
 }
 
 ExpressAdapter.prototype.addRoute = function(path, options) {
-  var handler = this.buildHander(options, 'send');
+  var handler = this.buildHandler(options, 'send');
   this.expressRouter.get(path, handler);
 }
 

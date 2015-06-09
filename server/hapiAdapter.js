@@ -1,4 +1,4 @@
-var BaseServerAdapter = require('./base/serverAdapter.js');
+var BaseServerAdapter = require('./base/serverAdapter');
 var util = require('util');
 
 function HapiAdapter(options, serverInstance) {
