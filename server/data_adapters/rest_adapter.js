@@ -10,7 +10,7 @@ RestAdapter.prototype.request = function(req, res, callback) {
   var requestUrl;
   // var next = (!cbContext) ? callback : callback.bind(cbContext);
 
-  var apiUrl = this.options.protocol + '://' + this.options.host + ':' + this.options.port;
+  var apiUrl = this.options.protocol + '://' + this.options.host + ':' + this.options.port + '/api';
 
   if (typeof req.url === 'string') {
     requestUrl = req.url;
