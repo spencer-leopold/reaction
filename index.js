@@ -48,24 +48,28 @@ exports.Router = function(options) {
   return new ReactionRouter(options);
 };
 
-exports.attachApp = function(options, serverInstance) {
-  var Server;
+exports.attachApp = function(options, server) {
+  var ServerAdapter;
 
   if (options.serverAdapter) {
-    Server = options.serverAdapter;
+    ServerAdapter = options.serverAdapter;
   }
   else {
-    // Use variables to require adapter modules so they
-    // don't get bundled by browserify
-    if (serverInstance.response) {
+    // Use variables to require adapter modules in order
+    // to hide them from requirejs
+    if (server.response) {
       var expressAdapter = './server/expressAdapter';
-      Server = require(expressAdapter);
+      ServerAdapter = require(expressAdapter);
+    }
+    else if (server.formatters) {
+      var restifyAdapter = './server/restifyAdapter';
+      ServerAdapter = require(restifyAdapter);
     }
     else {
       var hapiAdapter = './server/hapiAdapter';
-      Server = require(hapiAdapter);
+      ServerAdapter = require(hapiAdapter);
     }
   }
 
-  return new Server(options, serverInstance);
+  return new ServerAdapter(options, server);
 }
