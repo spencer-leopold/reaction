@@ -30,7 +30,15 @@ var fetcherMiddleware = function(callback) {
     var info = url.parse(host);
     var baseUrl = info.protocol + '//' + info.hostname + ':' + info.port;
 
-    callback(req, baseUrl, req.path, next);
+    var path;
+    if (typeof req.url === 'string') {
+      path = req.url;
+    }
+    else {
+      path = req.url.path;
+    }
+
+    callback(req, baseUrl, path, next);
   }
 }
 
