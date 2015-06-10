@@ -1,14 +1,11 @@
 var BaseServerAdapter = require('./base/serverAdapter');
 var util = require('util');
-var express = require('express');
 
 function ExpressAdapter(options, serverInstance) {
   this.server = serverInstance;
-  this.expressRouter = express.Router();
 
   BaseServerAdapter.call(this, options);
 
-  this.attachRoutes();
   return this.server;
 }
 
@@ -17,13 +14,14 @@ function ExpressAdapter(options, serverInstance) {
  */
 util.inherits(ExpressAdapter, BaseServerAdapter);
 
-ExpressAdapter.prototype.formatParams = function(path) {
-  return path;
-}
+ExpressAdapter.prototype.attachRoutes = function(routes) {
+  var route, handler;
 
-ExpressAdapter.prototype.addRoute = function(path, options) {
-  var handler = this.buildHandler(options, 'send');
-  this.expressRouter.get(path, handler);
+  for (var i in routes) {
+    route = routes[i];
+    handler = this.buildHandler(route.options, 'send');
+    this.server.get(route.path, handler);
+  }
 }
 
 ExpressAdapter.prototype.attachServerFetcher = function() {
@@ -35,10 +33,6 @@ ExpressAdapter.prototype.attachApiProxy = function() {
   var middleware = this.loadApiProxy();
   var apiPath = this.options.apiPath || '/api';
   this.server.use(apiPath, middleware);
-}
-
-ExpressAdapter.prototype.attachRoutes = function() {
-  this.server.use(this.expressRouter);
 }
 
 module.exports = ExpressAdapter;

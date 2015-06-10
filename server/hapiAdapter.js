@@ -29,6 +29,20 @@ HapiAdapter.prototype.addRoute = function(path, options) {
   });
 }
 
+HapiAdapter.prototype.attachRoutes = function(routes) {
+  var route, handler;
+
+  for (var i in routes) {
+    route = routes[i];
+    handler = this.buildHandler(route.options);
+    this.server.route({
+      method: 'GET',
+      path: route.path,
+      handler: handler
+    });
+  }
+}
+
 HapiAdapter.prototype.attachServerFetcher = function() {
   var plugin = this.loadServerFetcher('plugin');
 
