@@ -6,6 +6,7 @@ var _ = require('../../shared/lodash.custom');
 function BaseAdapter(options) {
   // @TODO: Add some error checking for options
   this.options = options || {};
+  this.serverRoutes = [];
   this.serverRoutePaths = [];
 
   // Listen for new routes and parse them
@@ -15,6 +16,8 @@ function BaseAdapter(options) {
   this.router.buildRoutes();
 
   this.attachServerFetcher();
+
+  this.attachRoutes(this.serverRoutes);
 
   if (this.options.api) {
     if (!this.options.dataAdapter) {
@@ -41,7 +44,9 @@ BaseAdapter.prototype.parseRoute = function(options, component, mainComponent) {
         this.serverRoutePaths.push(path);
       }
 
-      this.addRoute(path, options);
+      this.serverRoutes.push({ path: path, options: options });
+      this.serverRoutePaths.push(path);
+      // this.addRoute(path, options);
     }
   }
 }
@@ -141,12 +146,16 @@ BaseAdapter.prototype.loadApiProxy = function(type) {
 /**
  * Implement these methods in child class
  */
-BaseAdapter.prototype.addRoute = function(path, options) {
-  throw new Error('`addRoute` needs to be implemented');
+BaseAdapter.prototype.attachRoutes = function(routes) {
+  throw new Error('`attachRoutes` needs to be implemented');
 }
 
+// Most servers use a similar route convention so we shouldn't
+// require `formatParams` to be implemented, instead by default
+// we just return the path so that it can be overridden for cases
+// like when using Hapi
 BaseAdapter.prototype.formatParams = function(path) {
-  throw new Error('`formatParams` needs to be implemented');
+  return path;
 }
 
 BaseAdapter.prototype.attachServerFetcher = function(path, options) {
