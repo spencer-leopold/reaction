@@ -1,5 +1,3 @@
-var React = require('react');
-var ReactAddons = require('react/addons');
 var ReactRouter = require('react-router');
 var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
@@ -11,10 +9,6 @@ var DefaultRoute = require('./shared/components/DefaultRoute');
 var NotFoundRoute = require('./shared/components/NotFoundRoute');
 var Redirect = require('./shared/components/Redirect');
 var Prefetch = require('./shared/components/Prefetch');
-
-exports.React = React;
-
-exports.ReactAddons = ReactAddons;
 
 exports.ReactRouter = ReactRouter;
 
