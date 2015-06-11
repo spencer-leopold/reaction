@@ -1,3 +1,4 @@
+var React = require('react');
 var ReactRouter = require('react-router');
 var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
