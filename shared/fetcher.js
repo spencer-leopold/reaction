@@ -6,8 +6,8 @@ var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
 
 function Fetcher() {
   this.baseUrl = '';
-  this._cache = {};
   this.headers = {};
+  this._cache = {};
 }
 
 Fetcher.prototype.setBaseUrl = function(url) {
@@ -136,4 +136,6 @@ METHODS.forEach(function(method) {
   }
 });
 
-module.exports = Fetcher;
+module.exports = function() {
+  return new Fetcher();
+} 
