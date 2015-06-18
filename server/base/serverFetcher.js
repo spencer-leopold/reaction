@@ -1,11 +1,10 @@
 var url = require('url');
 
-var fetcherPlugin = function(callback) {
+function fetcherPlugin(callback) {
   var serverFetcher = {
     register: function(server, options, next) {
       server.ext('onPreHandler', function(request, reply) {
         var baseUrl = server.info.protocol + '://' + server.info.host + ':' + server.info.port;
-        var next = reply.continue.bind(reply);
         callback(request, baseUrl, request.route.path, reply.continue, reply);
       });
 
@@ -21,7 +20,7 @@ var fetcherPlugin = function(callback) {
   return serverFetcher;
 }
 
-var fetcherMiddleware = function(callback) {
+function fetcherMiddleware(callback) {
   return function(req, res, next) {
     var host = req.headers.host;
     if (host.indexOf('http://') === -1) {

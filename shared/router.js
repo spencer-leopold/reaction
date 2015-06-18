@@ -1,8 +1,7 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
-var ReactionFetcher = require('./fetcher');
-var Fetcher = new ReactionFetcher();
+var Fetcher = require('./fetcher')();
 var Events = require('./events');
 var _ = require('./lodash.custom');
 
