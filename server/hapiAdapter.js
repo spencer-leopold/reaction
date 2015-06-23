@@ -15,7 +15,10 @@ function HapiAdapter(options, serverInstance) {
 util.inherits(HapiAdapter, BaseServerAdapter);
 
 HapiAdapter.prototype.formatParams = function(path) {
-  var formattedPath = path.replace(/\:([^\/\s]*)/g, '{$1}');
+  var formattedPath = path
+    .replace(/\(\/\:([^\/\s]*)\)/g, '/{$1?}') // reformat optional parameters
+    .replace(/\:([^\/\s]*)/g, '{$1}'); // reformat normal parameters
+
   return formattedPath;
 }
 
