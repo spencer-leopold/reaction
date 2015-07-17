@@ -19,38 +19,17 @@ describe('shared/fetcher', function() {
     describe('#setBaseUrl()', function() {
 
       it('should return a properly formatted url', function() {
-        var options = {
-          protocol: 'http',
-          host: 'testing.com',
-          port: '1234'
-        }
-
-        Fetcher.setBaseUrl(options);
+        Fetcher.setBaseUrl('http://testing.com:1234');
         Fetcher.baseUrl.should.equal('http://testing.com:1234');
-      });
-
-      it('should use http as a default if no protocol is passed', function() {
-        var options = {
-          host: 'testing.com'
-        }
-
-        Fetcher.setBaseUrl(options);
-        Fetcher.baseUrl.should.equal('http://testing.com');
-      });
-
-      it('should throw an error if no host is passed', function() {
-        var spy = sinon.spy(Fetcher, 'setBaseUrl');
-
-        expect(function() {
-          Fetcher.setBaseUrl({ protocol: 'http' });
-        }).to.throw('Host name must be provided');
-
-        spy.should.have.been.calledOnce;
       });
     });
 
     describe('#setHeaderValue()', function() {
       it('should store the header value', function() {
+        Fetcher.setHeaderValue('api-key', '123456789');
+        Fetcher.should.have.property('headers');
+        Fetcher.headers.should.have.property('api-key');
+        Fetcher.headers['api-key'].should.equal('123456789');
       });
 
       it('should send the header value in all subsequent requests', function() {
