@@ -14,8 +14,8 @@ function ExpressAdapter(options, serverInstance) {
  */
 util.inherits(ExpressAdapter, BaseServerAdapter);
 
-ExpressAdapter.prototype.attachRoutes = function(routes) {
-  var route, handler;
+ExpressAdapter.prototype.attachRoutes = function() {
+  var route, handler, routes = this.serverRoutes;
 
   for (var i in routes) {
     route = routes[i];

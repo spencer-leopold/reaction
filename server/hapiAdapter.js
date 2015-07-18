@@ -22,22 +22,13 @@ HapiAdapter.prototype.formatParams = function(path) {
   return formattedPath;
 }
 
-HapiAdapter.prototype.addRoute = function(path, options) {
-  var handler = this.buildHandler(options);
-
-  this.server.route({
-    method: 'GET',
-    path: path,
-    handler: handler
-  });
-}
-
-HapiAdapter.prototype.attachRoutes = function(routes) {
-  var route, handler;
+HapiAdapter.prototype.attachRoutes = function() {
+  var route, handler, routes = this.serverRoutes;
 
   for (var i in routes) {
     route = routes[i];
     handler = this.buildHandler(route.options);
+
     this.server.route({
       method: 'GET',
       path: route.path,

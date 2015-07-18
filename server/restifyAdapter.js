@@ -14,8 +14,8 @@ function RestifyAdapter(options, server) {
  */
 util.inherits(RestifyAdapter, BaseServerAdapter);
 
-RestifyAdapter.prototype.attachRoutes = function(routes) {
-  var route, handler;
+RestifyAdapter.prototype.attachRoutes = function() {
+  var route, handler, routes = this.serverRoutes;
 
   for (var i in routes) {
     route = routes[i];

@@ -10,7 +10,6 @@ RestAdapter.prototype.request = function(req, res, callback) {
   var requestUrl;
   // var next = (!cbContext) ? callback : callback.bind(cbContext);
 
-  var apiUrl = this.options.protocol + '://' + this.options.host + ':' + this.options.port;
 
   if (typeof req.url === 'string') {
     requestUrl = req.url;
@@ -19,12 +18,14 @@ RestAdapter.prototype.request = function(req, res, callback) {
     requestUrl = req.url.path;
   }
 
+  requestUrl = this.processUrl(requestUrl);
+
   if (req.query && !_.isEmpty(req.query)) {
     requestUrl += '?' + qs.stringify(req.query);
   }
 
   var api = {
-    url: apiUrl + requestUrl,
+    url: requestUrl,
     method: req.method,
     headers: req.headers,
     json: req.body || req.payload,
@@ -51,6 +52,32 @@ RestAdapter.prototype.request = function(req, res, callback) {
 
     return callback(body);
   });
+}
+
+
+RestAdapter.prototype.processUrl = function(path) {
+  var config;
+  var apiConfig = this.options;
+  var apiPath = path.replace('\/-', '');
+  var url = apiPath;
+
+  if (apiConfig && !!apiConfig.apiPrefix) {
+    url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + apiPath;
+  }
+  else {
+    for (api in apiConfig) {
+      if (apiConfig.hasOwnProperty(api)) {
+        config = apiConfig[api];
+
+        if (~apiPath.indexOf(config.apiPrefix)) {
+          url = config.protocol + '://' + config.host + ':' + config.port + apiPath;
+          break;
+        }
+      }
+    }
+  }
+
+  return url;
 }
 
 module.exports = RestAdapter;

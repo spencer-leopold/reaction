@@ -2,7 +2,7 @@ var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
 var Fetcher = require('./fetcher')();
-var Events = require('./events');
+var Events = require('./events').Dispatcher;
 var _ = require('./lodash.custom');
 
 function ReactionRouter(options) {
@@ -255,9 +255,8 @@ ReactionRouter.prototype.buildRoutes = function() {
     this.addRouteDefinition(this.componentRoutes[route]);
   }.bind(this));
 
-  // console.log(this.routes[0].childRoutes[0]);
-  // console.log(this.routes[0].defaultRoute.childRoutes);
-  // console.log(this.routes[0]);
+  Events.trigger('routes:finished');
+
   return this.routes;
 }
 

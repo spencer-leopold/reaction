@@ -30,6 +30,7 @@ function fetcherMiddleware(callback) {
     var baseUrl = info.protocol + '//' + info.hostname + ':' + info.port;
 
     var path;
+
     if (typeof req.url === 'string') {
       path = req.url;
     }

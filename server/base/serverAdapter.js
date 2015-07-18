@@ -1,6 +1,6 @@
 var React = require('react');
 var Router = require('../../shared/router');
-var Events = require('../../shared/events');
+var Events = require('../../shared/events').Dispatcher;
 var _ = require('../../shared/lodash.custom');
 
 function BaseAdapter(options) {
@@ -11,13 +11,11 @@ function BaseAdapter(options) {
 
   // Listen for new routes and parse them
   Events.on('route:add', this.parseRoute, this);
+  Events.on('routes:finished', this.attachServerFetcher, this);
+  Events.on('routes:finished', this.attachRoutes, this);
   // Attach the router and trigger all routes to be built
   this.router = new Router(options);
   this.router.buildRoutes();
-
-  this.attachServerFetcher();
-
-  this.attachRoutes(this.serverRoutes);
 
   if (this.options.api) {
     if (!this.options.dataAdapter) {
@@ -28,7 +26,7 @@ function BaseAdapter(options) {
   }
 }
 
-BaseAdapter.prototype.parseRoute = function(options, component, mainComponent) {
+BaseAdapter.prototype.parseRoute = function(event, options, component, mainComponent) {
   var path = '', handler;
   options = options || {};
 
@@ -46,7 +44,6 @@ BaseAdapter.prototype.parseRoute = function(options, component, mainComponent) {
 
       this.serverRoutes.push({ path: path, options: options });
       this.serverRoutePaths.push(path);
-      // this.addRoute(path, options);
     }
   }
 }
