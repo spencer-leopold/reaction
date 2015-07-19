@@ -7,20 +7,7 @@ function RestAdapter(options) {
 }
 
 RestAdapter.prototype.request = function(req, res, callback) {
-  var requestUrl;
-
-  if (typeof req.url === 'string') {
-    requestUrl = req.url;
-  }
-  else {
-    requestUrl = req.url.path;
-  }
-
-  requestUrl = this.processUrl(requestUrl);
-
-  if (req.query && !_.isEmpty(req.query)) {
-    requestUrl += '?' + qs.stringify(req.query);
-  }
+  var requestUrl = this.processUrl(req);
 
   var api = {
     url: requestUrl,
@@ -53,29 +40,66 @@ RestAdapter.prototype.request = function(req, res, callback) {
 }
 
 
-RestAdapter.prototype.processUrl = function(path) {
-  var config, apiPath = '', url = path;
-  var apiConfig = this.options;
-  var sepIndex = path.indexOf('/-');
+RestAdapter.prototype.processUrl = function(req) {
+  var config, url, endPoint = false, apiMatch = false;
 
-  if (~sepIndex) {
-    apiPath = path.substr(sepIndex + 2, path.length - 1);
-  }
-
-  if (apiConfig && !!apiConfig.apiPrefix) {
-    url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + apiPath;
+  if (typeof req.url === 'string') {
+    url = req.url;
   }
   else {
-    for (api in apiConfig) {
-      if (apiConfig.hasOwnProperty(api)) {
-        config = apiConfig[api];
+    url = req.url.path;
+  }
 
-        if (~apiPath.indexOf(config.apiPrefix)) {
-          url = config.protocol + '://' + config.host + ':' + config.port + apiPath;
-          break;
-        }
-      }
+  var sepIndex = url.indexOf('/-');
+
+  if (~sepIndex) {
+    endPoint = url.substr(sepIndex + 2, url.length - 1);
+  }
+
+  var api = req.headers.api || 'default';
+  var apiConfig = this.options[api] || this.options;
+
+  // @TODO: TEST THIS HEAVILY
+  // if we don't have an endPoint that means an absolute
+  // path to the API was used, so we need to diff the
+  // url and the apiPrefix to figure out the correct
+  // path to API Endpoint, since some servers strip
+  // the mountPath from the url.
+  // (e.g /api/1.0/users would come through as /1.0/users)
+  if (apiConfig && apiConfig.apiPrefix && !endPoint) {
+    var diff = apiConfig.apiPrefix;
+    var matches = url.split('/');
+
+    for (var i = 0; i < matches.length; i++) {
+      var re = new RegExp('(' + matches[i] + '\/' + '|' + matches[i] + ')', 'g');
+      console.log(re);
+      diff = diff.replace(re, '');
     }
+
+    if (diff.charAt(0) !== '/') {
+      diff = '/' + diff;
+    }
+
+    endPoint = diff + url;
+  }
+
+  if (apiConfig && apiConfig.apiPrefix && ~endPoint.indexOf(apiConfig.apiPrefix)) {
+    url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + endPoint;
+  }
+  else {
+    var protocol = '';
+    var host = req.headers.host;
+
+    if (host.indexOf('https://') === -1) {
+      protocol = 'http://';
+    }
+
+    url = protocol + req.headers.host + endPoint;
+  }
+
+  // Append query string to end of url
+  if (req.query && !_.isEmpty(req.query)) {
+    url += '?' + qs.stringify(req.query);
   }
 
   return url;

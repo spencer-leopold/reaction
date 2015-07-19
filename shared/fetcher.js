@@ -46,12 +46,18 @@ Fetcher.prototype.fetchRouteData = function(routes, params, data) {
     })
     .map(function(route) {
       var info = route.handler.fetchData(params);
-      var api = info.api || 'api';
+
+      var api = (typeof info.api === 'undefined') ? 'api' : info.api;
       var method = info.method || 'get';
-      var url = '/' + api + '/-/' + info.url;
+      var url = (api && info.url.charAt(0) === '/') ? '/api/-' + info.url : info.url;
+
       var requestData = info.data || {};
       var headers = info.headers || {};
-      var cache = info.cache || true;
+      var cache = (typeof info.cache === 'undefined') ? true : info.cache;
+
+      if (api) {
+        headers.api = api;
+      }
 
       return self[method](url, requestData, headers, cache).then(function(d) {
         return data[route.name] = d;
@@ -77,12 +83,18 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params);
-          var api = info.api || 'api';
+
+          var api = (typeof info.api === 'undefined') ? 'api' : info.api;
           var method = info.method || 'get';
-          var url = '/' + api + '/-' + info.url;
+          var url = (api && info.url.charAt(0) === '/') ? '/api/-' + info.url : info.url;
+
           var requestData = info.data || {};
           var headers = info.headers || {};
-          var cache = (typeof info.cache === 'undefined') ? true : false;
+          var cache = (typeof info.cache === 'undefined') ? true : info.cache;
+
+          if (api) {
+            headers.api = api;
+          }
 
           return self[method](url, requestData, headers, cache).then(function(d) {
             return data[name] = d;
