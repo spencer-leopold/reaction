@@ -1,4 +1,5 @@
 var BaseServerAdapter = require('./base/serverAdapter');
+var url = require('url');
 var util = require('util');
 
 function ExpressAdapter(options, serverInstance) {
@@ -24,9 +25,30 @@ ExpressAdapter.prototype.attachRoutes = function() {
   }
 }
 
+ExpressAdapter.prototype.routeCallback = function(callback) {
+  return function(req, res, next) {
+    var host = req.headers.host;
+    if (host.indexOf('http://') === -1) {
+      host = 'http://'+host;
+    }
+    var info = url.parse(host);
+    var baseUrl = info.protocol + '//' + info.hostname + ':' + info.port;
+
+    var path;
+
+    if (typeof req.url === 'string') {
+      path = req.url;
+    }
+    else {
+      path = req.url.path;
+    }
+
+    callback(req, baseUrl, path, next);
+  }
+}
+
 ExpressAdapter.prototype.attachServerFetcher = function() {
-  var middleware = this.loadServerFetcher();
-  this.server.use(middleware);
+  this.server.use(this.getFetcherCallback());
 }
 
 ExpressAdapter.prototype.attachApiProxy = function() {

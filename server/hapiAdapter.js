@@ -37,8 +37,28 @@ HapiAdapter.prototype.attachRoutes = function() {
   }
 }
 
+HapiAdapter.prototype.routeCallback = function(callback) {
+  var serverFetcher = {
+    register: function(server, options, next) {
+      server.ext('onPreHandler', function(request, reply) {
+        var baseUrl = server.info.protocol + '://' + server.info.host + ':' + server.info.port;
+        callback(request, baseUrl, request.route.path, reply.continue.bind(reply));
+      });
+
+      next();
+    }
+  }
+
+  serverFetcher.register.attributes = {
+    name: 'ServerFetcher',
+    version: '1.0.0'
+  }
+
+  return serverFetcher;
+}
+
 HapiAdapter.prototype.attachServerFetcher = function() {
-  var plugin = this.loadServerFetcher('plugin');
+  var plugin = this.getFetcherCallback();
 
   this.server.register({
     register: plugin

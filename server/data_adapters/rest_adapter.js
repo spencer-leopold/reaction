@@ -8,8 +8,6 @@ function RestAdapter(options) {
 
 RestAdapter.prototype.request = function(req, res, callback) {
   var requestUrl;
-  // var next = (!cbContext) ? callback : callback.bind(cbContext);
-
 
   if (typeof req.url === 'string') {
     requestUrl = req.url;
@@ -56,10 +54,13 @@ RestAdapter.prototype.request = function(req, res, callback) {
 
 
 RestAdapter.prototype.processUrl = function(path) {
-  var config;
+  var config, apiPath = '', url = path;
   var apiConfig = this.options;
-  var apiPath = path.replace('\/-', '');
-  var url = apiPath;
+  var sepIndex = path.indexOf('/-');
+
+  if (~sepIndex) {
+    apiPath = path.substr(sepIndex + 2, path.length - 1);
+  }
 
   if (apiConfig && !!apiConfig.apiPrefix) {
     url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + apiPath;

@@ -128,6 +128,10 @@ METHODS.forEach(function(method) {
       }
 
       request.end(function(err, res) {
+        if (err) {
+          return reject(err);
+        }
+
         if (res.status === 404) {
           reject(new Error('404 not found'));
         }

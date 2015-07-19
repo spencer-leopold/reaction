@@ -13,6 +13,7 @@ function BaseAdapter(options) {
   Events.on('route:add', this.parseRoute, this);
   Events.on('routes:finished', this.attachServerFetcher, this);
   Events.on('routes:finished', this.attachRoutes, this);
+
   // Attach the router and trigger all routes to be built
   this.router = new Router(options);
   this.router.buildRoutes();
@@ -117,17 +118,9 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
   return handler;
 }
 
-BaseAdapter.prototype.loadServerFetcher = function(type) {
-  var reactRoutes = this.router.routes;
-  var serverRoutePaths = this.serverRoutePaths;
-
-  var pluginOptions = {
-    clientRoutes: reactRoutes,
-    serverRoutes: serverRoutePaths,
-    type: type
-  }
-
-  return require('./serverFetcher')(pluginOptions);
+BaseAdapter.prototype.getFetcherCallback = function() {
+  var renderFn = require('./renderRouteData')(this.router.routes);
+  return this.routeCallback(renderFn);
 }
 
 BaseAdapter.prototype.loadApiProxy = function(type) {
@@ -145,6 +138,21 @@ BaseAdapter.prototype.loadApiProxy = function(type) {
  */
 BaseAdapter.prototype.attachRoutes = function(routes) {
   throw new Error('`attachRoutes` needs to be implemented');
+}
+
+/**
+ * routeCallback needs to return middleware that
+ * executes the callback function
+ * @param {Function} callback
+ *
+ * callback
+ * @param {Object} req
+ * @param {String} baseUrl
+ * @param {String} path
+ * @param {Function} next
+ */
+BaseAdapter.prototype.routeCallback = function(callback) {
+  throw new Error('`routeCallback` needs to be implemented');
 }
 
 // Most servers use a similar route convention so we shouldn't

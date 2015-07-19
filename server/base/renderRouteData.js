@@ -1,27 +1,26 @@
 //
-// @TODO: Need to fix path check when path is dynamic
+// @TODO: Need a better way to match routes
+// (or at least use React-Routers match functionality)
 //
 
 var React = require('react');
 var ReactRouter = require('react-router');
+var Match = require('../../node_modules/react-router/lib/Match');
 var ReactionFetcher = require('../../shared/fetcher');
 
-module.exports = function(options) {
+module.exports = function(clientRoutes) {
   var fetcher = new ReactionFetcher();
 
-  return function(request, baseUrl, path, callback, cbContext) {
-    var next = (!cbContext) ? callback : callback.bind(cbContext);
+  return function(request, baseUrl, path, next) {
+    var pathExists = Match.findMatch(clientRoutes, path);
 
-    if (options.serverRoutes.indexOf(path) === -1) {
+    if (!pathExists) {
       next();
     }
     else {
-      // need to set the baseUrl, otherwise fetching relative paths
-      // fail on initial page load
       fetcher.setBaseUrl(baseUrl);
 
-      // React-Router functionality
-      ReactRouter.run(options.clientRoutes, path, function(Handler, state) {
+      ReactRouter.run(clientRoutes, path, function(Handler, state) {
         fetcher.fetchData(state.routes, state.params).then(function(data) {
           var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
 
@@ -39,6 +38,7 @@ module.exports = function(options) {
           next();
         });
       });
+
     }
   }
 }
