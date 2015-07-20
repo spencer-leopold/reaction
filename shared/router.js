@@ -1,8 +1,8 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
-var Fetcher = require('./fetcher')();
-var Events = require('./events').Dispatcher;
+var ReactionFetcher = require('./fetcher');
+var eventMixin = require('./events').mixin;
 var _ = require('./lodash.custom');
 
 function ReactionRouter(options) {
@@ -10,6 +10,8 @@ function ReactionRouter(options) {
   this.componentRoutes = {};
   this._initOptions(options);
 }
+
+eventMixin(ReactionRouter);
 
 ReactionRouter.prototype._initOptions = function(options) {
   var entryPath;
@@ -255,7 +257,7 @@ ReactionRouter.prototype.buildRoutes = function() {
     this.addRouteDefinition(this.componentRoutes[route]);
   }.bind(this));
 
-  Events.trigger('routes:finished');
+  this.trigger('routes:finished');
 
   return this.routes;
 }
@@ -322,7 +324,7 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
     }
   }
 
-  Events.trigger('route:add', route);
+  this.trigger('route:add', route);
 
   // If route doesn't have a parent it's a top-level route,
   // so we want to add it to the main routes array
@@ -367,6 +369,7 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 
 ReactionRouter.prototype.start = function(appData, locationType, el) {
   var that = this;
+  var fetcher = new ReactionFetcher(this.options);
 
   if (typeof locationType !== 'function') {
     switch(locationType) {
@@ -420,7 +423,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           React.render(React.createFactory(Handler)({ data: appData }), el);
         }
         else {
-          Fetcher.fetchData(state.routes, state.params).then(function(data) {
+          fetcher.fetchData(state.routes, state.params).then(function(data) {
             React.render(React.createFactory(Handler)({ data: data }), el);
           });
         }
