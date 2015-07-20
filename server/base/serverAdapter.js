@@ -1,21 +1,30 @@
+//
+// @TODO: Need a better way to match routes
+// (or at least use React-Routers match functionality)
+//
+
 var React = require('react');
+var ReactRouter = require('react-router');
+var Match = require('../../node_modules/react-router/lib/Match');
+var ReactionFetcher = require('../../shared/fetcher');
 var Router = require('../../shared/router');
-var Events = require('../../shared/events').Dispatcher;
 var _ = require('../../shared/lodash.custom');
 
-function BaseAdapter(options) {
+function BaseAdapter(options, server) {
   // @TODO: Add some error checking for options
   this.options = options || {};
+  this.server = server;
   this.serverRoutes = [];
   this.serverRoutePaths = [];
 
-  // Listen for new routes and parse them
-  Events.on('route:add', this.parseRoute, this);
-  Events.on('routes:finished', this.attachServerFetcher, this);
-  Events.on('routes:finished', this.attachRoutes, this);
-
-  // Attach the router and trigger all routes to be built
+  // Attach the router and bind to all events
   this.router = new Router(options);
+
+  // Listen for new routes and parse them
+  this.router.on('route:add', this.parseRoute, this);
+  this.router.on('routes:finished', this.attachServerFetcher, this);
+  this.router.on('routes:finished', this.attachRoutes, this);
+
   this.router.buildRoutes();
 
   if (this.options.api) {
@@ -118,9 +127,54 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
   return handler;
 }
 
+BaseAdapter.prototype.renderAppCallback = function() {
+  var fetcher = new ReactionFetcher(this.options);
+  var clientRoutes = this.router.routes;
+
+  return function(request, path, next) {
+    var pathExists = Match.findMatch(clientRoutes, path);
+
+    if (!pathExists) {
+      next();
+    }
+    else {
+      var protocol = '';
+      var host = request.headers.host;
+
+      if (host.indexOf('https://') === -1) {
+        protocol = 'http://';
+      }
+
+      var baseUrl = protocol + host;
+
+      fetcher.setBaseUrl(baseUrl);
+
+      ReactRouter.run(clientRoutes, path, function(Handler, state) {
+        fetcher.fetchData(state.routes, state.params).then(function(data) {
+          if (!data.path) {
+            data.path = path;
+          }
+
+          var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
+
+          // attach the markup and initial data to the request
+          // object to be injected into layout templates
+          request.reactionData = {
+            body: markup,
+            appData: data
+          };
+
+          next();
+        });
+      });
+
+    }
+  }
+}
+
 BaseAdapter.prototype.getFetcherCallback = function() {
-  var renderFn = require('./renderRouteData')(this.router.routes);
-  return this.routeCallback(renderFn);
+  var renderAppCallback = this.renderAppCallback();
+  return this.routeCallback(renderAppCallback);
 }
 
 BaseAdapter.prototype.loadApiProxy = function(type) {
