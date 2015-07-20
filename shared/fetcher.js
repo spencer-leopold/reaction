@@ -1,7 +1,13 @@
 //
+// @TODO: Need separate client/server fetch function
+//
 // @TODO: Need a better way to signal we want to skip
 // sending to API and instead load data from endpoint
 // on current server
+//
+// @TODO: May need to pass baseUrl in when calling fetchData,
+// instead of relying on the instance property. Need to test
+// it out with some concurrent users.
 //
 
 var Promise = require('when');
@@ -10,7 +16,8 @@ var _ = require('./lodash.custom');
 
 var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
 
-function Fetcher() {
+function Fetcher(options) {
+  this.options = options || {};
   this.baseUrl = '';
   this.headers = {};
   this._cache = {};
@@ -49,7 +56,8 @@ Fetcher.prototype.fetchRouteData = function(routes, params, data) {
 
       var api = (typeof info.api === 'undefined') ? 'api' : info.api;
       var method = info.method || 'get';
-      var url = (api && info.url.charAt(0) === '/') ? '/api/-' + info.url : info.url;
+      var apiPath = self.options.apiPath || '/api';
+      var url = (api && info.url.charAt(0) === '/') ? apiPath + '/-' + info.url : info.url;
 
       var requestData = info.data || {};
       var headers = info.headers || {};
@@ -86,7 +94,8 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
 
           var api = (typeof info.api === 'undefined') ? 'api' : info.api;
           var method = info.method || 'get';
-          var url = (api && info.url.charAt(0) === '/') ? '/api/-' + info.url : info.url;
+          var apiPath = self.options.apiPath || '/api';
+          var url = (api && info.url.charAt(0) === '/') ? apiPath + '/-' + info.url : info.url;
 
           var requestData = info.data || {};
           var headers = info.headers || {};
@@ -114,8 +123,15 @@ METHODS.forEach(function(method) {
     var that = this;
     var request;
 
-    if (this.baseUrl && url.charAt(0) === '/') {
-      url = this.baseUrl + url;
+    if (url.charAt(0) === '/') {
+      if (typeof document !== 'undefined') {
+        var apiPath = this.options.apiPath || '/api';
+        url = apiPath + '/-' + url;
+      }
+
+      if (this.baseUrl) {
+        url = this.baseUrl + url;
+      }
     }
 
     if (method === 'get' && this._cache[url] && cacheResponse) {
@@ -160,6 +176,4 @@ METHODS.forEach(function(method) {
   }
 });
 
-module.exports = function() {
-  return new Fetcher();
-} 
+module.exports = Fetcher;
