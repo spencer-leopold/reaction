@@ -1,12 +1,9 @@
 var BaseServerAdapter = require('./base/serverAdapter');
 var util = require('util');
 
-function HapiAdapter(options, serverInstance) {
-  this.server = serverInstance;
-
-  BaseServerAdapter.call(this, options);
-
-  return this.server;
+function HapiAdapter(options, server) {
+  BaseServerAdapter.call(this, options, server);
+  return server;
 }
 
 /**
@@ -41,8 +38,7 @@ HapiAdapter.prototype.routeCallback = function(callback) {
   var serverFetcher = {
     register: function(server, options, next) {
       server.ext('onPreHandler', function(request, reply) {
-        var baseUrl = server.info.protocol + '://' + server.info.host + ':' + server.info.port;
-        callback(request, baseUrl, request.route.path, reply.continue.bind(reply));
+        callback(request, request.route.path, reply.continue.bind(reply));
       });
 
       next();

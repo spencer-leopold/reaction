@@ -2,12 +2,9 @@ var BaseServerAdapter = require('./base/serverAdapter');
 var url = require('url');
 var util = require('util');
 
-function ExpressAdapter(options, serverInstance) {
-  this.server = serverInstance;
-
-  BaseServerAdapter.call(this, options);
-
-  return this.server;
+function ExpressAdapter(options, server) {
+  BaseServerAdapter.call(this, options, server);
+  return server;
 }
 
 /**
@@ -27,13 +24,6 @@ ExpressAdapter.prototype.attachRoutes = function() {
 
 ExpressAdapter.prototype.routeCallback = function(callback) {
   return function(req, res, next) {
-    var host = req.headers.host;
-    if (host.indexOf('http://') === -1) {
-      host = 'http://'+host;
-    }
-    var info = url.parse(host);
-    var baseUrl = info.protocol + '//' + info.hostname + ':' + info.port;
-
     var path;
 
     if (typeof req.url === 'string') {
@@ -43,7 +33,7 @@ ExpressAdapter.prototype.routeCallback = function(callback) {
       path = req.url.path;
     }
 
-    callback(req, baseUrl, path, next);
+    callback(req, path, next);
   }
 }
 

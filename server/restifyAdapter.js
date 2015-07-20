@@ -2,11 +2,8 @@ var BaseServerAdapter = require('reaction/server/base/serverAdapter');
 var util = require('util');
 
 function RestifyAdapter(options, server) {
-  this.server = server;
-
-  BaseServerAdapter.call(this, options);
-
-  return this.server;
+  BaseServerAdapter.call(this, options, server);
+  return server;
 }
 
 /**
@@ -26,13 +23,6 @@ RestifyAdapter.prototype.attachRoutes = function() {
 
 RestifyAdapter.prototype.routeCallback = function(callback) {
   return function(req, res, next) {
-    var host = req.headers.host;
-    if (host.indexOf('http://') === -1) {
-      host = 'http://'+host;
-    }
-    var info = url.parse(host);
-    var baseUrl = info.protocol + '//' + info.hostname + ':' + info.port;
-
     var path;
 
     if (typeof req.url === 'string') {
@@ -42,7 +32,7 @@ RestifyAdapter.prototype.routeCallback = function(callback) {
       path = req.url.path;
     }
 
-    callback(req, baseUrl, path, next);
+    callback(req, path, next);
   }
 }
 
