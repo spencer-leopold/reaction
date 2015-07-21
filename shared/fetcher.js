@@ -124,10 +124,10 @@ METHODS.forEach(function(method) {
     var request;
 
     if (url.charAt(0) === '/') {
-      if (typeof document !== 'undefined') {
-        var apiPath = this.options.apiPath || '/api';
-        url = apiPath + '/-' + url;
-      }
+      // if (typeof document !== 'undefined') {
+      //   var apiPath = this.options.apiPath || '/api';
+      //   url = apiPath + '/-' + url;
+      // }
 
       if (this.baseUrl) {
         url = this.baseUrl + url;
