@@ -57,7 +57,7 @@ RestAdapter.prototype.processUrl = function(req) {
   }
 
   var api = req.headers.api || 'default';
-  var apiConfig = this.options[api] || this.options;
+  var apiConfig = this.options[api] || this.options['default'] || this.options;
 
   // @TODO: TEST THIS HEAVILY
   // if we don't have an endPoint that means an absolute
@@ -72,7 +72,6 @@ RestAdapter.prototype.processUrl = function(req) {
 
     for (var i = 0; i < matches.length; i++) {
       var re = new RegExp('(' + matches[i] + '\/' + '|' + matches[i] + ')', 'g');
-      console.log(re);
       diff = diff.replace(re, '');
     }
 
@@ -80,8 +79,13 @@ RestAdapter.prototype.processUrl = function(req) {
       diff = '/' + diff;
     }
 
+    if (diff === '/' && url.charAt(0) === '/') {
+      diff = '';
+    }
+
     endPoint = diff + url;
   }
+
 
   if (apiConfig && apiConfig.apiPrefix && ~endPoint.indexOf(apiConfig.apiPrefix)) {
     url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + endPoint;
@@ -98,7 +102,7 @@ RestAdapter.prototype.processUrl = function(req) {
   }
 
   // Append query string to end of url
-  if (req.query && !_.isEmpty(req.query)) {
+  if (req.query && !_.isEmpty(req.query) && url.indexOf('?') === -1) {
     url += '?' + qs.stringify(req.query);
   }
 

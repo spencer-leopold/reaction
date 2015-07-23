@@ -8,6 +8,7 @@ var ReactRouter = require('react-router');
 var Match = require('../../node_modules/react-router/lib/Match');
 var ReactionFetcher = require('../../shared/fetcher');
 var Router = require('../../shared/router');
+var qs = require('qs2');
 var _ = require('../../shared/lodash.custom');
 
 function BaseAdapter(options, server) {
@@ -147,10 +148,14 @@ BaseAdapter.prototype.renderAppCallback = function() {
 
       var baseUrl = protocol + host;
 
+      if (request.query && !_.isEmpty(request.query) && path.indexOf('?') === -1) {
+        path += '?' + qs.stringify(request.query);
+      }
+
       fetcher.setBaseUrl(baseUrl);
 
       ReactRouter.run(clientRoutes, path, function(Handler, state) {
-        fetcher.fetchData(state.routes, state.params).then(function(data) {
+        fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
           if (!data.path) {
             data.path = path;
           }

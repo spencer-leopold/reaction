@@ -423,7 +423,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           React.render(React.createFactory(Handler)({ data: appData }), el);
         }
         else {
-          fetcher.fetchData(state.routes, state.params).then(function(data) {
+          fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
             React.render(React.createFactory(Handler)({ data: data }), el);
           });
         }
