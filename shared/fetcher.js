@@ -35,16 +35,16 @@ Fetcher.prototype.removeHeaderValue = function(key) {
   delete this.headers[key];
 }
 
-Fetcher.prototype.fetchData = function(routes, params) {
+Fetcher.prototype.fetchData = function(routes, params, query) {
   var data = {};
   var self = this;
 
-  return Promise.all([self.fetchRouteData(routes, params, data), self.fetchPrefetchData(routes, params, data)]).then(function() {
+  return Promise.all([self.fetchRouteData(routes, params, query, data), self.fetchPrefetchData(routes, params, query, data)]).then(function() {
     return data;
   });
 }
 
-Fetcher.prototype.fetchRouteData = function(routes, params, data) {
+Fetcher.prototype.fetchRouteData = function(routes, params, query, data) {
   var self = this;
 
   return Promise.all(routes
@@ -52,9 +52,9 @@ Fetcher.prototype.fetchRouteData = function(routes, params, data) {
       return route.handler.fetchData;
     })
     .map(function(route) {
-      var info = route.handler.fetchData(params);
+      var info = route.handler.fetchData(params, query);
 
-      var api = (typeof info.api === 'undefined') ? 'api' : info.api;
+      var api = (typeof info.api === 'undefined') ? 'default' : info.api;
       var method = info.method || 'get';
       var apiPath = self.options.apiPath || '/api';
       var url = (api && info.url.charAt(0) === '/') ? apiPath + '/-' + info.url : info.url;
@@ -76,7 +76,7 @@ Fetcher.prototype.fetchRouteData = function(routes, params, data) {
   });
 }
 
-Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
+Fetcher.prototype.fetchPrefetchData = function(routes, params, query, data) {
   var self = this;
 
   return Promise.all(routes
@@ -90,9 +90,9 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, data) {
         })
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
-          var info = component.fetchData(params);
+          var info = component.fetchData(params, query);
 
-          var api = (typeof info.api === 'undefined') ? 'api' : info.api;
+          var api = (typeof info.api === 'undefined') ? 'default' : info.api;
           var method = info.method || 'get';
           var apiPath = self.options.apiPath || '/api';
           var url = (api && info.url.charAt(0) === '/') ? apiPath + '/-' + info.url : info.url;
