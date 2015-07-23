@@ -420,11 +420,21 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
       }
       else {
         if (appData && typeof appData === 'object' && appData.path === state.path) {
-          React.render(React.createFactory(Handler)({ data: appData }), el);
+          React.render(React.createFactory(Handler)(appData), el);
         }
         else {
           fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
-            React.render(React.createFactory(Handler)({ data: data }), el);
+            if (!data.path) {
+              data.path = state.path;
+            }
+            if (!data.params) {
+              data.params = state.params;
+            }
+            if (!data.query) {
+              data.query = state.query;
+            }
+
+            React.render(React.createFactory(Handler)(data), el);
           });
         }
       }

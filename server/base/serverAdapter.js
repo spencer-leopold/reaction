@@ -88,10 +88,7 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
       var reactionData = request.reactionData || {};
       var templateVars = {
         body: reactionData.body,
-        appData: {
-          data: reactionData.appData,
-          path: request.path
-        },
+        appData: reactionData.appData,
         start: function(replaceElement, locationType) {
           if (!replaceElement) {
             replaceElement = 'document.body';
@@ -159,8 +156,14 @@ BaseAdapter.prototype.renderAppCallback = function() {
           if (!data.path) {
             data.path = path;
           }
+          if (!data.params) {
+            data.params = state.params;
+          }
+          if (!data.query) {
+            data.query = state.query;
+          }
 
-          var markup = React.renderToString(React.createFactory(Handler)({ data: data }));
+          var markup = React.renderToString(React.createFactory(Handler)(data));
 
           // attach the markup and initial data to the request
           // object to be injected into layout templates
