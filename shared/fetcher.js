@@ -14,7 +14,7 @@ var Promise = require('when');
 var Request = require('superagent');
 var _ = require('./lodash.custom');
 
-var METHODS = ['get', 'options', 'post', 'put', 'patch', 'delete'];
+var METHODS = ['get', 'options', 'post', 'put', 'patch', 'del'];
 
 function Fetcher(options) {
   this.options = options || {};
