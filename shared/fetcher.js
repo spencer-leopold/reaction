@@ -11,23 +11,23 @@ var Request = require('superagent');
 var _ = require('./lodash.custom');
 var isClient = (typeof document !== 'undefined');
 
-function Fetcher(options) {
+function ComponentFetcher(options) {
   this.options = options || {};
   this._cache = {};
   this.api = 'default';
 }
 
-Fetcher.prototype.setApi = function(api) {
+ComponentFetcher.prototype.setApi = function(api) {
   this.api = api || 'default';
   return this;
 }
 
-Fetcher.prototype.setBaseUrl = function(url) {
+ComponentFetcher.prototype.setBaseUrl = function(url) {
   this.options.baseUrl = url;
   return this;
 }
 
-Fetcher.prototype.parseAndFetch = function(info) {
+ComponentFetcher.prototype.parseAndFetch = function(info) {
   var api = (typeof info.api === 'undefined') ? 'default' : info.api;
   var method = info.method || 'get';
   var apiPath = this.options.apiPath || '/api';
@@ -45,7 +45,7 @@ Fetcher.prototype.parseAndFetch = function(info) {
   return this.handleRequest(method, url, data, headers, cache);
 }
 
-Fetcher.prototype.fetchData = function(routes, params, query) {
+ComponentFetcher.prototype.fetchData = function(routes, params, query) {
   var self = this;
   var data = {};
 
@@ -57,7 +57,7 @@ Fetcher.prototype.fetchData = function(routes, params, query) {
   });
 }
 
-Fetcher.prototype.fetchRouteData = function(routes, params, query, data) {
+ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data) {
   var self = this;
 
   return Promise.all(routes
@@ -76,7 +76,7 @@ Fetcher.prototype.fetchRouteData = function(routes, params, query, data) {
   });
 }
 
-Fetcher.prototype.fetchPrefetchData = function(routes, params, query, data) {
+ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, data) {
   var self = this;
 
   return Promise.all(routes
@@ -105,7 +105,7 @@ Fetcher.prototype.fetchPrefetchData = function(routes, params, query, data) {
   });
 }
 
-Fetcher.prototype.formatUrl = function(url) {
+ComponentFetcher.prototype.formatUrl = function(url) {
   var apiPath;
 
   if (url.charAt(0) === '/') {
@@ -126,7 +126,7 @@ Fetcher.prototype.formatUrl = function(url) {
   return url;
 }
 
-Fetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
+ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
   var self = this, allHeaders = { api: this.api };
 
   if (method === 'get' && this._cache[url] && cacheResponse) {
@@ -168,19 +168,19 @@ Fetcher.prototype.handleRequest = function(method, url, data, headers, cacheResp
 
 //
 // @TODO: Extract these methods out in own module
-// that returns a new instance of Fetcher per call
+// that returns a new instance of ComponentFetcher per call
 //
 function fetcher(options) {
-  return new Fetcher(options);
+  return new ComponentFetcher(options);
 }
 
 fetcher.api = function(api) {
-  this.api = api;
+  this._api = api;
   return this;
 }
 
 fetcher.get = function(url, headers, cache) {
-  var f = fetcher().setApi(this.api);
+  var f = fetcher().setApi(this._api);
   this.api = null;
 
   url = f.formatUrl(url);
@@ -194,7 +194,7 @@ fetcher.get = function(url, headers, cache) {
 }
 
 fetcher.del = function(url, headers) {
-  var f = fetcher().setApi(this.api);
+  var f = fetcher().setApi(this._api);
   this.api = null;
 
   url = f.formatUrl(url);
@@ -205,7 +205,7 @@ fetcher.del = function(url, headers) {
 
 
 fetcher.head = function(url, data, headers) {
-  var f = fetcher().setApi(this.api);
+  var f = fetcher().setApi(this._api);
   this.api = null;
 
   url = f.formatUrl(url);
@@ -215,7 +215,7 @@ fetcher.head = function(url, data, headers) {
 }
 
 fetcher.patch = function(url, data, headers) {
-  var f = fetcher().setApi(this.api);
+  var f = fetcher().setApi(this._api);
   this.api = null;
 
   url = f.formatUrl(url);
@@ -225,7 +225,7 @@ fetcher.patch = function(url, data, headers) {
 }
 
 fetcher.post = function(url, data, headers) {
-  var f = fetcher().setApi(this.api);
+  var f = fetcher().setApi(this._api);
   this.api = null;
 
   url = f.formatUrl(url);
@@ -235,7 +235,7 @@ fetcher.post = function(url, data, headers) {
 }
 
 fetcher.put = function(url, data, headers) {
-  var f = fetcher().setApi(this.api);
+  var f = fetcher().setApi(this._api);
   this.api = null;
 
   url = f.formatUrl(url);

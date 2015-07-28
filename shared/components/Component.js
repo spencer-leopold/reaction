@@ -34,7 +34,6 @@ var ReactionComponent = (function (_React$Component) {
     value: function fetch() {
       if (!arguments.length || arguments.length === 1 && typeof arguments[0] === 'boolean') {
         var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
-        console.log(this.props);
         return fetcher(this.props).parseAndFetch(info);
       }
     }
