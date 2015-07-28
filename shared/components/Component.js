@@ -10,7 +10,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var React = require('react');
 var ReactRouter = require('react-router');
-var Fetcher = require('../fetcher')();
+var fetcher = require('../fetcher');
 
 var ReactionComponent = (function (_React$Component) {
   function ReactionComponent(props) {
@@ -33,36 +33,35 @@ var ReactionComponent = (function (_React$Component) {
     key: 'fetch',
     value: function fetch() {
       if (!arguments.length || arguments.length === 1 && typeof arguments[0] === 'boolean') {
-        var info = this.constructor.fetchData(this.context.router.getCurrentParams());
-        var method = info.method || 'get';
-        var url = info.url;
-        var requestData = info.data || {};
-        var headers = info.headers || {};
-
-        return Fetcher[method](url, requestData, headers, false);
+        var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+        console.log(this.props);
+        return fetcher(this.props).parseAndFetch(info);
       }
     }
   }, {
     key: 'fetcher',
     get: function () {
       return {
+        api: function api() {
+          return fetcher.api.apply(fetcher, arguments);
+        },
         get: function get() {
-          return Fetcher.get.apply(Fetcher, arguments);
+          return fetcher.get.apply(fetcher, arguments);
         },
-        post: function post() {
-          return Fetcher.post.apply(Fetcher, arguments);
+        head: function head() {
+          return fetcher.head.apply(fetcher, arguments);
         },
-        put: function put() {
-          return Fetcher.put.apply(Fetcher, arguments);
+        del: function del() {
+          return fetcher.del.apply(fetcher, arguments);
         },
         patch: function patch() {
-          return Fetcher.patch.apply(Fetcher, arguments);
+          return fetcher.patch.apply(fetcher, arguments);
         },
-        'delete': function _delete() {
-          return Fetcher['delete'].apply(Fetcher, arguments);
+        post: function post() {
+          return fetcher.post.apply(fetcher, arguments);
         },
-        options: function options() {
-          return Fetcher.options.apply(Fetcher, arguments);
+        put: function put() {
+          return fetcher.put.apply(fetcher, arguments);
         }
       };
     }

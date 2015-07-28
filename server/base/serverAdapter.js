@@ -126,7 +126,7 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
 }
 
 BaseAdapter.prototype.renderAppCallback = function() {
-  var fetcher = new ReactionFetcher(this.options);
+  var fetcher = ReactionFetcher(this.options);
   var clientRoutes = this.router.routes;
 
   return function(request, path, next) {
@@ -162,6 +162,8 @@ BaseAdapter.prototype.renderAppCallback = function() {
           if (!data.query) {
             data.query = state.query;
           }
+
+          data.baseUrl = baseUrl;
 
           var markup = React.renderToString(React.createFactory(Handler)(data));
 

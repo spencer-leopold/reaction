@@ -369,7 +369,7 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 
 ReactionRouter.prototype.start = function(appData, locationType, el) {
   var that = this;
-  var fetcher = new ReactionFetcher(this.options);
+  var fetcher = ReactionFetcher(this.options);
 
   if (typeof locationType !== 'function') {
     switch(locationType) {
