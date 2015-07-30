@@ -39,7 +39,6 @@ RestAdapter.prototype.request = function(req, res, callback) {
   });
 }
 
-
 RestAdapter.prototype.processUrl = function(req) {
   var config, url, endPoint = false, apiMatch = false;
 

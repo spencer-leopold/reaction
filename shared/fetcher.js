@@ -1,6 +1,4 @@
 //
-// @TODO: Need separate client/server fetch function
-//
 // @TODO: Need a better way to signal we want to skip
 // sending to API and instead load data from endpoint
 // on current server
@@ -171,9 +169,14 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
 // that returns a new instance of ComponentFetcher per call
 //
 function fetcher(options) {
+  this._api = 'default';
   return new ComponentFetcher(options);
 }
 
+// Convenience method to change
+// the API without having to
+// send it as a header with the
+// request
 fetcher.api = function(api) {
   this._api = api;
   return this;
@@ -181,7 +184,7 @@ fetcher.api = function(api) {
 
 fetcher.get = function(url, headers, cache) {
   var f = fetcher().setApi(this._api);
-  this.api = null;
+  this._api = 'default';
 
   url = f.formatUrl(url);
   headers = headers || {};
@@ -195,7 +198,7 @@ fetcher.get = function(url, headers, cache) {
 
 fetcher.del = function(url, headers) {
   var f = fetcher().setApi(this._api);
-  this.api = null;
+  this._api = 'default';
 
   url = f.formatUrl(url);
   headers = headers || {};
@@ -206,7 +209,7 @@ fetcher.del = function(url, headers) {
 
 fetcher.head = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
-  this.api = null;
+  this._api = 'default';
 
   url = f.formatUrl(url);
   headers = headers || {};
@@ -216,7 +219,7 @@ fetcher.head = function(url, data, headers) {
 
 fetcher.patch = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
-  this.api = null;
+  this._api = 'default';
 
   url = f.formatUrl(url);
   headers = headers || {};
@@ -226,7 +229,7 @@ fetcher.patch = function(url, data, headers) {
 
 fetcher.post = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
-  this.api = null;
+  this._api = 'default';
 
   url = f.formatUrl(url);
   headers = headers || {};
@@ -236,7 +239,7 @@ fetcher.post = function(url, data, headers) {
 
 fetcher.put = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
-  this.api = null;
+  this._api = 'default';
 
   url = f.formatUrl(url);
   headers = headers || {};
