@@ -14,18 +14,21 @@ var fetcher = require('../fetcher');
 
 var ReactionComponent = (function (_React$Component) {
   function ReactionComponent(props) {
+    var autoBind = arguments[1] === undefined ? true : arguments[1];
     _classCallCheck(this, ReactionComponent);
 
     _get(Object.getPrototypeOf(ReactionComponent.prototype), 'constructor', this).call(this, props);
 
-    var proto = this.constructor.prototype;
-    var methods = Object.getOwnPropertyNames(proto).filter(function (method) {
-      return typeof proto[method] === 'function';
-    });
+    if (autoBind) {
+      var proto = this.constructor.prototype;
+      var methods = Object.getOwnPropertyNames(proto).filter(function (method) {
+        return typeof proto[method] === 'function';
+      });
 
-    methods.forEach((function (method) {
-      this[method] = this[method].bind(this);
-    }).bind(this));
+      methods.forEach((function (method) {
+        this[method] = this[method].bind(this);
+      }).bind(this));
+    }
   }
 
   _inherits(ReactionComponent, _React$Component);
