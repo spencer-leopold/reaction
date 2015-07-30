@@ -18,8 +18,9 @@ var ReactionComponent = (function (_React$Component) {
 
     _get(Object.getPrototypeOf(ReactionComponent.prototype), 'constructor', this).call(this, props);
 
-    var methods = Object.getOwnPropertyNames(this.constructor.prototype).filter(function (method) {
-      return typeof method === 'function';
+    var proto = this.constructor.prototype;
+    var methods = Object.getOwnPropertyNames(proto).filter(function (method) {
+      return typeof proto[method] === 'function';
     });
 
     methods.forEach((function (method) {
