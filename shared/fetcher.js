@@ -6,6 +6,8 @@
 
 var Promise = require('when');
 var Request = require('superagent');
+var MemoryStore = require('./memory_store');
+var memoryStore = new MemoryStore();
 var _ = require('./lodash.custom');
 var isClient = (typeof document !== 'undefined');
 
@@ -127,8 +129,8 @@ ComponentFetcher.prototype.formatUrl = function(url) {
 ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
   var self = this, allHeaders = { api: this.api };
 
-  if (method === 'get' && this._cache[url] && cacheResponse) {
-    return Promise.resolve(this._cache[url]);
+  if (method === 'get' && cacheResponse && memoryStore.get(url)) {
+    return Promise.resolve(memoryStore.get(url));
   }
 
   return Promise.promise(function(resolve, reject) {
@@ -154,20 +156,17 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
       }
       else {
         var data = res.body;
-        resolve(data);
 
-        if (method === 'get') {
-          self._cache[url] = data;
+        if (method === 'get' && cacheResponse) {
+          memoryStore.set(url, data, 900); // cache for 15 minutes
         }
+
+        resolve(data);
       }
     });
   });
 }
 
-//
-// @TODO: Extract these methods out in own module
-// that returns a new instance of ComponentFetcher per call
-//
 function fetcher(options) {
   this._api = 'default';
   return new ComponentFetcher(options);
