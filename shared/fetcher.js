@@ -93,7 +93,7 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
           var info = component.fetchData(params, query);
 
           return self.parseAndFetch(info).then(function(d) {
-            return data[route.name] = d;
+            return data[name] = d;
           });
         })
       ).then(function() {
