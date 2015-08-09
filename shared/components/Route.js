@@ -34,6 +34,7 @@ var Route = (function (_React$Component) {
 Route.propTypes = {
   name: PropTypes.string,
   path: PropTypes.string,
+  title: PropTypes.string,
   handle: PropTypes.func,
   handler: PropTypes.string,
   ignoreScrollBehavior: PropTypes.bool

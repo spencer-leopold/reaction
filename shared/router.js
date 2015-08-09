@@ -337,6 +337,11 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
     reactRoute.prefetchHandlers = route.prefetchHandlers;
   }
 
+  // Check for page titles
+  if (route.title && reactRoute) {
+    reactRoute.title = route.title;
+  }
+
   // If the route has children, run the function again
   // this time passing the current route as the `parent` parameter.
   // This will repeat for as long as necessary until full nested route

@@ -89,6 +89,7 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
       var templateVars = {
         body: reactionData.body,
         appData: reactionData.appData,
+        title: reactionData.appData.title || 'Reaction App',
         start: function(replaceElement, locationType) {
           if (!replaceElement) {
             replaceElement = 'document.body';
@@ -153,6 +154,14 @@ BaseAdapter.prototype.renderAppCallback = function() {
 
       ReactRouter.run(clientRoutes, path, function(Handler, state) {
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
+
+          // Check for a page title
+          state.routes.forEach(function(route) {
+            if (route.title) {
+              data.title = route.title;
+            }
+          });
+
           if (!data.path) {
             data.path = path;
           }
