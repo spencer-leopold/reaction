@@ -32,7 +32,7 @@ ComponentFetcher.prototype.parseAndFetch = function(info) {
   var method = info.method || 'get';
   var apiPath = this.options.apiPath || '/api';
 
-  var url = this.formatUrl(info.url);
+  var url = this.formatUrl(info.url, api);
 
   var data = info.data || {};
   var headers = info.headers || {};
@@ -121,18 +121,20 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
   });
 }
 
-ComponentFetcher.prototype.formatUrl = function(url) {
+ComponentFetcher.prototype.formatUrl = function(url, api) {
   var apiPath;
 
   if (url.charAt(0) === '/') {
-    if (isClient) {
-      apiPath = window.ReactionRouter.options.apiPath || '/api';
-    }
-    else {
-      apiPath = this.options.apiPath || '/api';
-    }
+    if (!!api) {
+      if (isClient) {
+        apiPath = window.ReactionRouter.options.apiPath || '/api';
+      }
+      else {
+        apiPath = this.options.apiPath || '/api';
+      }
 
-    url = apiPath + '/-' + url;
+      url = apiPath + '/-' + url;
+    }
 
     if (this.options.baseUrl) {
       url = this.options.baseUrl + url;
@@ -199,9 +201,9 @@ fetcher.api = function(api) {
 
 fetcher.get = function(url, headers, cache) {
   var f = fetcher().setApi(this._api);
+  url = f.formatUrl(url, this._api);
   this._api = 'default';
 
-  url = f.formatUrl(url);
   headers = headers || {};
 
   if (typeof headers === 'boolean') {
@@ -213,9 +215,9 @@ fetcher.get = function(url, headers, cache) {
 
 fetcher.del = function(url, headers) {
   var f = fetcher().setApi(this._api);
+  url = f.formatUrl(url, this._api);
   this._api = 'default';
 
-  url = f.formatUrl(url);
   headers = headers || {};
 
   return f.handleRequest('del', url, {}, headers);
@@ -224,9 +226,9 @@ fetcher.del = function(url, headers) {
 
 fetcher.head = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
+  url = f.formatUrl(url, this._api);
   this._api = 'default';
 
-  url = f.formatUrl(url);
   headers = headers || {};
 
   return f.handleRequest('head', url, data, headers);
@@ -234,9 +236,9 @@ fetcher.head = function(url, data, headers) {
 
 fetcher.patch = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
+  url = f.formatUrl(url, this._api);
   this._api = 'default';
 
-  url = f.formatUrl(url);
   headers = headers || {};
 
   return f.handleRequest('patch', url, data, headers);
@@ -244,9 +246,9 @@ fetcher.patch = function(url, data, headers) {
 
 fetcher.post = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
+  url = f.formatUrl(url, this._api);
   this._api = 'default';
 
-  url = f.formatUrl(url);
   headers = headers || {};
 
   return f.handleRequest('post', url, data, headers);
@@ -254,9 +256,9 @@ fetcher.post = function(url, data, headers) {
 
 fetcher.put = function(url, data, headers) {
   var f = fetcher().setApi(this._api);
+  url = f.formatUrl(url, this._api);
   this._api = 'default';
 
-  url = f.formatUrl(url);
   headers = headers || {};
 
   return f.handleRequest('put', url, data, headers);
