@@ -67,6 +67,14 @@ ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data
     .map(function(route) {
       var info = route.handler.fetchData(params, query);
 
+      // if info is a Promise, execute if and 
+      // set data to the passed in param
+      if (typeof info.then === 'function') {
+        return info.then(function(d) {
+          return data[route.name] = d;
+        });
+      }
+
       return self.parseAndFetch(info).then(function(d) {
         return data[route.name] = d;
       });
@@ -91,6 +99,14 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params, query);
+
+          // if info is a Promise, execute if and 
+          // set data to the passed in param
+          if (typeof info.then === 'function') {
+            return info.then(function(d) {
+              return data[route.name] = d;
+            });
+          }
 
           return self.parseAndFetch(info).then(function(d) {
             return data[name] = d;
