@@ -23,8 +23,7 @@ function BaseAdapter(options, server) {
 
   // Listen for new routes and parse them
   this.router.on('route:add', this.parseRoute, this);
-  this.router.on('routes:finished', this.attachServerFetcher, this);
-  this.router.on('routes:finished', this.attachRoutes, this);
+  this.router.on('routes:finished', this.onRoutesFinished, this);
 
   this.router.buildRoutes();
 
@@ -33,8 +32,12 @@ function BaseAdapter(options, server) {
       this.options.dataAdapter = require('../data_adapters/rest_adapter');
     }
 
-    this.attachApiProxy(this.options);
+    var dataAdapter = new this.options.dataAdapter(options.api);
+    var apiPath = this.options.apiPath || '/api';
+    this.attachApiProxy(apiPath, dataAdapter.request.bind(dataAdapter));
   }
+
+  this.attachErrorHandler(this.errorHandler());
 }
 
 BaseAdapter.prototype.parseRoute = function(event, options, component, mainComponent) {
@@ -126,7 +129,7 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
   return handler;
 }
 
-BaseAdapter.prototype.renderAppCallback = function() {
+BaseAdapter.prototype.attachAppData = function() {
   var fetcher = ReactionFetcher(this.options);
   var clientRoutes = this.router.routes;
 
@@ -191,19 +194,34 @@ BaseAdapter.prototype.renderAppCallback = function() {
   }
 }
 
-BaseAdapter.prototype.getFetcherCallback = function() {
-  var renderAppCallback = this.renderAppCallback();
-  return this.routeCallback(renderAppCallback);
+BaseAdapter.prototype.errorHandler = function() {
+  var templatesDir = this.router.options.paths.templatesDir;
+  var template = false;
+
+  return function(errCode) {
+    try {
+      template = require(templatesDir + '/error_'+errCode);
+    }
+    catch(e) {
+    }
+
+    if (!template) {
+      try {
+        template = require(templatesDir + '/error');
+      }
+      catch(e) {
+        throw new Error('You need to create an error template');
+      }
+    }
+
+    var markup = React.renderToString(React.createFactory(template)());
+    return markup;
+  }
 }
 
-BaseAdapter.prototype.loadApiProxy = function(type) {
-  var pluginOptions = {
-    type: type,
-    api: this.options.api,
-    dataAdapter: this.options.dataAdapter
-  }
-
-  return require('./apiProxy')(pluginOptions);
+BaseAdapter.prototype.onRoutesFinished = function() {
+  this.attachServerFetcher(this.attachAppData());
+  this.attachRoutes();
 }
 
 /**
@@ -214,18 +232,15 @@ BaseAdapter.prototype.attachRoutes = function(routes) {
 }
 
 /**
- * routeCallback needs to return middleware that
- * executes the callback function
- * @param {Function} callback
+ * attachErrorHandler needs to return middleware that
+ * returns the rendered error template
+ * @param {Function} renderTemplateCb 
  *
- * callback
- * @param {Object} req
- * @param {String} baseUrl
- * @param {String} path
- * @param {Function} next
+ * renderTemplateCb 
+ * @param {String} errCode
  */
-BaseAdapter.prototype.routeCallback = function(callback) {
-  throw new Error('`routeCallback` needs to be implemented');
+BaseAdapter.prototype.attachErrorHandler = function(renderTemplateCb) {
+  throw new Error('`attachErrorHandler` needs to be implemented');
 }
 
 // Most servers use a similar route convention so we shouldn't
