@@ -57,6 +57,7 @@ ReactionRouter.prototype.loadRoutesFromFile = function() {
 }
 
 ReactionRouter.prototype.loadRoutesFromComponent = function(entryPoints) {
+
   if (entryPoints.constructor !== Array) {
     throw new Error('entryPoints needs to be an array');
   }
@@ -66,6 +67,7 @@ ReactionRouter.prototype.loadRoutesFromComponent = function(entryPoints) {
     var routes = component.routes();
     this.parseRoutes(routes);
   }.bind(this));
+
 }
 
 ReactionRouter.prototype.prefixRoutePath = function(path) {
@@ -373,7 +375,7 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 }
 
 ReactionRouter.prototype.start = function(appData, locationType, el) {
-  var that = this;
+  var _this = this;
   var fetcher = ReactionFetcher(this.options);
 
   if (typeof locationType !== 'function') {
@@ -395,65 +397,34 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
   }
 
   window.onload = function() {
-    var firstLoad = true;
-    var lastTemplate, nextRoute, needReload = false;
-
-    ReactRouter.run(that.buildRoutes(), locationType, function (Handler, state) {
-      // Check if route changes the main template and the app isn't
-      // using RefreshLocation.
-      // If it does we need to temporarily kill the SPA
-      // in order to render full markup (with the new template)
-      // sent from the server
-      if (locationType !== 'Refresh') {
-        _.forEach(state.routes, function(route) {
-          if (route.template) {
-            if (lastTemplate !== route.template) {
-              needReload = true;
-              nextRoute = state.path;
-            }
-            else {
-              lastTemplate = route.template;
-            }
+    ReactRouter.run(_this.buildRoutes(), locationType, function (Handler, state) {
+      if (appData && typeof appData === 'object' && appData.path === state.path) {
+        React.render(React.createFactory(Handler)(appData), el);
+      }
+      else {
+        fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
+          if (!data.path) {
+            data.path = state.path;
           }
+          if (!data.params) {
+            data.params = state.params;
+          }
+          if (!data.query) {
+            data.query = state.query;
+          }
+
+          React.render(React.createFactory(Handler)(data), el);
         });
       }
 
-      if (needReload && !firstLoad) {
-        // @TODO: this breaks History and using browser back button
-        // goes back to the current page.  Need to fix.
-        window.location.href = nextRoute;
-      }
-      else {
-        if (appData && typeof appData === 'object' && appData.path === state.path) {
-          React.render(React.createFactory(Handler)(appData), el);
-        }
-        else {
-          fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
-            if (!data.path) {
-              data.path = state.path;
-            }
-            if (!data.params) {
-              data.params = state.params;
-            }
-            if (!data.query) {
-              data.query = state.query;
-            }
-
-            React.render(React.createFactory(Handler)(data), el);
-          });
-        }
-      }
-
       // Change the page title
-      if (!data.title) {
+      if (!appData.title) {
         state.routes.forEach(function(route) {
           if (route.title) {
             document.title = route.title;
           }
         });
       }
-
-      firstLoad = false;
     });
   }
 }
