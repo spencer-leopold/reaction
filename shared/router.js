@@ -445,11 +445,13 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
       }
 
       // Change the page title
-      state.routes.forEach(function(route) {
-        if (route.title) {
-          document.title = route.title;
-        }
-      });
+      if (!data.title) {
+        state.routes.forEach(function(route) {
+          if (route.title) {
+            document.title = route.title;
+          }
+        });
+      }
 
       firstLoad = false;
     });
