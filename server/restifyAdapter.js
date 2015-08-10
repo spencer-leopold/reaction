@@ -1,4 +1,4 @@
-var BaseServerAdapter = require('reaction/server/base/serverAdapter');
+var BaseServerAdapter = require('./base/serverAdapter');
 var util = require('util');
 
 function RestifyAdapter(options, server) {
@@ -21,8 +21,8 @@ RestifyAdapter.prototype.attachRoutes = function() {
   }
 }
 
-RestifyAdapter.prototype.routeCallback = function(callback) {
-  return function(req, res, next) {
+RestifyAdapter.prototype.attachServerFetcher = function(callback) {
+  this.server.use(function(req, res, next) {
     var path;
 
     if (typeof req.url === 'string') {
@@ -33,17 +33,22 @@ RestifyAdapter.prototype.routeCallback = function(callback) {
     }
 
     callback(req, path, next);
-  }
+  });
 }
 
-RestifyAdapter.prototype.attachServerFetcher = function() {
-  this.server.use(this.getFetcherCallback());
+RestifyAdapter.prototype.attachApiProxy = function(apiPath, callback) {
+  this.server.use(apiPath, function(req, res, next) {
+    var callback = res.json.bind(res);
+    callback(req, res, callback);
+  });
 }
 
-RestifyAdapter.prototype.attachApiProxy = function() {
-  var middleware = this.loadApiProxy();
-  var apiPath = this.options.apiPath || '/api';
-  this.server.get(apiPath, middleware);
+RestifyAdapter.prototype.attachErrorHandler = function(renderTemplateCb) {
+  this.server.use(function(req, res) {
+    if (!res.headersSent) {
+      res.send(renderTemplateCb(404));
+    }
+  });
 }
 
 module.exports = RestifyAdapter;

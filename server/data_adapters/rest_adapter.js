@@ -85,7 +85,6 @@ RestAdapter.prototype.processUrl = function(req) {
     endPoint = diff + url;
   }
 
-
   if (apiConfig && apiConfig.apiPrefix && ~endPoint.indexOf(apiConfig.apiPrefix)) {
     url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + endPoint;
   }

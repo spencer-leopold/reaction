@@ -1,5 +1,4 @@
 var BaseServerAdapter = require('./base/serverAdapter');
-var url = require('url');
 var util = require('util');
 
 function ExpressAdapter(options, server) {
@@ -22,8 +21,8 @@ ExpressAdapter.prototype.attachRoutes = function() {
   }
 }
 
-ExpressAdapter.prototype.routeCallback = function(callback) {
-  return function(req, res, next) {
+ExpressAdapter.prototype.attachServerFetcher = function(callback) {
+  this.server.use(function(req, res, next) {
     var path;
 
     if (typeof req.url === 'string') {
@@ -34,17 +33,22 @@ ExpressAdapter.prototype.routeCallback = function(callback) {
     }
 
     callback(req, path, next);
-  }
+  });
 }
 
-ExpressAdapter.prototype.attachServerFetcher = function() {
-  this.server.use(this.getFetcherCallback());
+ExpressAdapter.prototype.attachApiProxy = function(apiPath, callback) {
+  this.server.use(apiPath, function(req, res, next) {
+    var callback = res.json.bind(res);
+    callback(req, res, callback);
+  });
 }
 
-ExpressAdapter.prototype.attachApiProxy = function() {
-  var middleware = this.loadApiProxy();
-  var apiPath = this.options.apiPath || '/api';
-  this.server.use(apiPath, middleware);
+ExpressAdapter.prototype.attachErrorHandler = function(renderTemplateCb) {
+  this.server.use(function(req, res) {
+    if (!res.headersSent) {
+      res.send(renderTemplateCb(404));
+    }
+  });
 }
 
 module.exports = ExpressAdapter;

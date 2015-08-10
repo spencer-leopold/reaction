@@ -34,49 +34,40 @@ HapiAdapter.prototype.attachRoutes = function() {
   }
 }
 
-HapiAdapter.prototype.routeCallback = function(callback) {
-  var serverFetcher = {
-    register: function(server, options, next) {
-      server.ext('onPreHandler', function(request, reply) {
-        callback(request, request.route.path, reply.continue.bind(reply));
-      });
+HapiAdapter.prototype.attachServerFetcher = function(callback) {
+  this.server.ext('onPreHandler', function(req, reply) {
+    var path, next = reply.continue.bind(reply);
 
-      next();
+    if (typeof req.url === 'string') {
+      path = req.url;
     }
-  }
+    else {
+      path = req.url.path;
+    }
 
-  serverFetcher.register.attributes = {
-    name: 'ServerFetcher',
-    version: '1.0.0'
-  }
-
-  return serverFetcher;
+    callback(req, path, next);
+  });
 }
 
-HapiAdapter.prototype.attachServerFetcher = function() {
-  var plugin = this.getFetcherCallback();
-
-  this.server.register({
-    register: plugin
-  }, function(err) {
-    if (err) {
-      console.log(err);
+HapiAdapter.prototype.attachApiProxy = function(apiPath, callback) {
+  this.server.route({
+    method: '*',
+    path: apiPath + '/{p*}',
+    handler: function(request, reply) {
+      callback(request, reply, reply);
     }
   });
 }
 
-HapiAdapter.prototype.attachApiProxy = function() {
-  var plugin = this.loadApiProxy('plugin');
-  var apiPath = this.options.apiPath || '/api';
+HapiAdapter.prototype.attachErrorHandler = function(renderTemplateCb) {
+  this.server.ext('onPreResponse', function(request, reply) {
+    if (request.response && request.response.output && request.response.output.statusCode) {
+      var errCode = request.response.output.statusCode;
+      var markup = renderTemplateCb(errCode);
+      return reply(markup)
+    }
 
-  this.server.register({ register: plugin }, {
-    routes: {
-      prefix: apiPath
-    }
-  }, function(err) {
-    if (err) {
-      console.log(err);
-    }
+    return reply.continue();
   });
 }
 
