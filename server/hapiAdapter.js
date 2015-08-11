@@ -19,6 +19,14 @@ HapiAdapter.prototype.formatParams = function(path) {
   return formattedPath;
 }
 
+HapiAdapter.prototype.handleResponse = function(req, reply, body) {
+  reply(body);
+}
+
+HapiAdapter.prototype.handleNext = function(req, reply) {
+  reply.continue();
+}
+
 HapiAdapter.prototype.attachRoutes = function() {
   var route, handler, routes = this.serverRoutes;
 
@@ -36,16 +44,7 @@ HapiAdapter.prototype.attachRoutes = function() {
 
 HapiAdapter.prototype.attachServerFetcher = function(callback) {
   this.server.ext('onPreHandler', function(req, reply) {
-    var path, next = reply.continue.bind(reply);
-
-    if (typeof req.url === 'string') {
-      path = req.url;
-    }
-    else {
-      path = req.url.path;
-    }
-
-    callback(req, path, next);
+    callback(req, reply);
   });
 }
 

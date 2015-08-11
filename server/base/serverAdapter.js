@@ -62,8 +62,10 @@ BaseAdapter.prototype.parseRoute = function(event, options, component, mainCompo
   }
 }
 
-BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
+BaseAdapter.prototype.buildHandler = function(options) {
   var handler;
+  var handleResponse = this.handleResponse;
+  var handleNext = this.handleNext;
   var entryPath = this.router.options.entryPath;
   var templatesDir = this.router.options.paths.templatesDir;
   var routeTemplate = options.template || 'layout';
@@ -113,15 +115,10 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
       var layoutTemplate = require(templatesDir + '/' + routeTemplate);
       var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
 
-      if (!responseMethod) {
-        response(markup);
-      }
-      else {
-        response[responseMethod](markup);
-      }
+      handleResponse(request, response, markup);
 
       if (next) {
-        next();
+        handleNext(request, response, next);
       }
     }
   }
@@ -132,16 +129,26 @@ BaseAdapter.prototype.buildHandler = function(options, responseMethod) {
 BaseAdapter.prototype.attachAppData = function() {
   var fetcher = ReactionFetcher(this.options);
   var clientRoutes = this.router.routes;
+  var handleNext = this.handleNext;
 
-  return function(request, path, next) {
+  return function(req, res, next) {
+    var path;
+
+    if (typeof req.url === 'string') {
+      path = req.url;
+    }
+    else {
+      path = req.url.path;
+    }
+
     var pathExists = Match.findMatch(clientRoutes, path);
 
     if (!pathExists) {
-      next();
+      handleNext(req, res, next);
     }
     else {
       var protocol = '';
-      var host = request.headers.host;
+      var host = req.headers.host;
 
       if (host.indexOf('https://') === -1) {
         protocol = 'http://';
@@ -149,8 +156,8 @@ BaseAdapter.prototype.attachAppData = function() {
 
       var baseUrl = protocol + host;
 
-      if (request.query && !_.isEmpty(request.query) && path.indexOf('?') === -1) {
-        path += '?' + qs.stringify(request.query);
+      if (req.query && !_.isEmpty(req.query) && path.indexOf('?') === -1) {
+        path += '?' + qs.stringify(req.query);
       }
 
       fetcher.setBaseUrl(baseUrl);
@@ -181,12 +188,12 @@ BaseAdapter.prototype.attachAppData = function() {
 
           // attach the markup and initial data to the request
           // object to be injected into layout templates
-          request.reactionData = {
+          req.reactionData = {
             body: markup,
             appData: data
           };
 
-          next();
+          handleNext(req, res, next);
         });
       });
 
@@ -229,6 +236,14 @@ BaseAdapter.prototype.onRoutesFinished = function() {
  */
 BaseAdapter.prototype.attachRoutes = function(routes) {
   throw new Error('`attachRoutes` needs to be implemented');
+}
+
+BaseAdapter.prototype.handleResponse = function(req, res, body) {
+  throw new Error('`handleResponse` needs to be implemented');
+}
+
+BaseAdapter.prototype.handleNext = function(req, res, next) {
+  throw new Error('`handleNext` needs to be implemented');
 }
 
 /**

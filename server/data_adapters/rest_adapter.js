@@ -1,5 +1,6 @@
 var request = require('request');
 var qs = require('qs2');
+var debug = require('debug')('reaction');
 var _ = require('../../shared/lodash.custom');
 
 function RestAdapter(options) {
@@ -23,6 +24,9 @@ RestAdapter.prototype.request = function(req, res, callback) {
     delete api.json;
   }
 
+  debug("request adapter fetching data from %s", api.url);
+
+  var start = new Date().getTime(), end;
   request(api, function (err, response, body) {
     if (err) {
       return callback(err);
@@ -35,6 +39,8 @@ RestAdapter.prototype.request = function(req, res, callback) {
       console.log(e);
     }
 
+    end = new Date().getTime();
+    debug("api request finished in %s seconds", (end - start) / 1000);
     return callback(body);
   });
 }
