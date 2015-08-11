@@ -7,15 +7,15 @@ function RestAdapter(options) {
   this.options = options;
 }
 
-RestAdapter.prototype.request = function(req, res, callback) {
+RestAdapter.prototype.request = function(req, callback) {
   var requestUrl = this.processUrl(req);
 
   var api = {
     url: requestUrl,
-    method: req.method,
-    headers: req.headers,
-    json: req.body || req.payload,
-    params: req.params
+    method: req.method || 'get',
+    headers: req.headers || {},
+    json: req.body || req.payload || {},
+    params: req.params || {}
   };
 
   delete api.headers['accept-encoding'];
@@ -24,7 +24,7 @@ RestAdapter.prototype.request = function(req, res, callback) {
     delete api.json;
   }
 
-  debug("request adapter fetching data from %s", api.url);
+  debug("RestAdapter request: %s from %s", api.method.toUpperCase(), api.url);
 
   var start = new Date().getTime(), end;
   request(api, function (err, response, body) {
@@ -72,20 +72,22 @@ RestAdapter.prototype.processUrl = function(req) {
   // the mountPath from the url.
   // (e.g /api/1.0/users would come through as /1.0/users)
   if (apiConfig && apiConfig.apiPrefix && !endPoint) {
-    var diff = apiConfig.apiPrefix;
-    var matches = url.split('/');
-
-    for (var i = 0; i < matches.length; i++) {
-      var re = new RegExp('(' + matches[i] + '\/' + '|' + matches[i] + ')', 'g');
-      diff = diff.replace(re, '');
+    // strip leading slash from url so the diff
+    // preserves the apiPrefixes leading slash
+    if (url.charAt(0) === '/') {
+      url = url.substr(1);
     }
 
-    if (diff.charAt(0) !== '/') {
-      diff = '/' + diff;
-    }
+    var count = 0;
+    var diff = '';
 
-    if (diff === '/' && url.charAt(0) === '/') {
-      diff = '';
+    for (var i = 0; i < apiPrefix.length; i++) {
+      if (apiPrefix[i] !== url[count]) {
+        diff += apiPrefix[i];
+      }
+      else {
+        count++;
+      }
     }
 
     endPoint = diff + url;
