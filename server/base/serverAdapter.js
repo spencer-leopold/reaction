@@ -9,6 +9,7 @@ var Match = require('../../node_modules/react-router/lib/Match');
 var ReactionFetcher = require('../../shared/fetcher');
 var Router = require('../../shared/router');
 var qs = require('qs2');
+var debug = require('debug')('reaction');
 var _ = require('../../shared/lodash.custom');
 
 function BaseAdapter(options, server) {
@@ -227,15 +228,24 @@ BaseAdapter.prototype.errorHandler = function() {
 }
 
 BaseAdapter.prototype.onRoutesFinished = function() {
+  var route, handler, routes = this.serverRoutes;
+
   this.attachServerFetcher(this.attachAppData());
-  this.attachRoutes();
+
+  for (var i in routes) {
+    route = routes[i];
+    handler = this.buildHandler(route.options);
+
+    debug("Adding route %s", route.path);
+    this.addRoute(route, handler);
+  }
 }
 
 /**
  * Implement these methods in child class
  */
-BaseAdapter.prototype.attachRoutes = function(routes) {
-  throw new Error('`attachRoutes` needs to be implemented');
+BaseAdapter.prototype.addRoute = function(route, handler) {
+  throw new Error('`addRoute` needs to be implemented');
 }
 
 BaseAdapter.prototype.handleResponse = function(req, res, body) {

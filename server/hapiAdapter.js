@@ -27,19 +27,12 @@ HapiAdapter.prototype.handleNext = function(req, reply) {
   reply.continue();
 }
 
-HapiAdapter.prototype.attachRoutes = function() {
-  var route, handler, routes = this.serverRoutes;
-
-  for (var i in routes) {
-    route = routes[i];
-    handler = this.buildHandler(route.options);
-
-    this.server.route({
-      method: 'GET',
-      path: route.path,
-      handler: handler
-    });
-  }
+HapiAdapter.prototype.addRoute = function(route, handler) {
+  this.server.route({
+    method: 'GET',
+    path: route.path,
+    handler: handler
+  });
 }
 
 HapiAdapter.prototype.attachServerFetcher = function(callback) {
@@ -53,7 +46,7 @@ HapiAdapter.prototype.attachApiProxy = function(apiPath, callback) {
     method: '*',
     path: apiPath + '/{p*}',
     handler: function(request, reply) {
-      callback(request, reply, reply);
+      callback(request, reply);
     }
   });
 }
