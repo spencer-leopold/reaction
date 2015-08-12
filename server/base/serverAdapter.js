@@ -92,10 +92,16 @@ BaseAdapter.prototype.buildHandler = function(options) {
   else {
     handler = function(request, response, next) {
       var reactionData = request.reactionData || {};
+      var pageTitle = 'Reaction App';
+
+      if (reactionData.appData && reactionData.appData.title) {
+        pageTitle = reactionData.appData.title;
+      }
+
       var templateVars = {
         body: reactionData.body,
         appData: reactionData.appData,
-        title: reactionData.appData.title || 'Reaction App',
+        title: pageTitle,
         start: function(replaceElement, locationType) {
           if (!replaceElement) {
             replaceElement = 'document.body';
@@ -131,9 +137,25 @@ BaseAdapter.prototype.attachAppData = function() {
   var fetcher = ReactionFetcher(this.options);
   var clientRoutes = this.router.routes;
   var handleNext = this.handleNext;
+  var attachDataToRequest = this.attachDataToRequest;
+  var run = this.attachAppDataAsync;
 
   return function(req, res, next) {
-    var path;
+    run(req).then(function(data) {
+      req.reactionData = data;
+      handleNext(req, res, next);
+    }).catch(function() {
+      handleNext(req, res, next);
+    });
+  }
+}
+
+BaseAdapter.prototype.attachAppDataAsync = function(req) {
+  var path;
+  var fetcher = ReactionFetcher(this.options);
+  var clientRoutes = this.router.routes;
+
+  return new Promise(function(resolve, reject) {
 
     if (typeof req.url === 'string') {
       path = req.url;
@@ -145,7 +167,7 @@ BaseAdapter.prototype.attachAppData = function() {
     var pathExists = Match.findMatch(clientRoutes, path);
 
     if (!pathExists) {
-      handleNext(req, res, next);
+      reject();
     }
     else {
       var protocol = '';
@@ -189,17 +211,17 @@ BaseAdapter.prototype.attachAppData = function() {
 
           // attach the markup and initial data to the request
           // object to be injected into layout templates
-          req.reactionData = {
+          var data = {
             body: markup,
             appData: data
           };
 
-          handleNext(req, res, next);
+          resolve(data);
         });
       });
-
     }
-  }
+
+  });
 }
 
 BaseAdapter.prototype.errorHandler = function() {
