@@ -15,7 +15,10 @@
   "keywords": [
     "Isomorphic",
     "React",
-    "Hapi"
+    "Express",
+    "Hapi",
+    "Koa",
+    "Restify"
   ],
   "author": "Spencer Leopold",
   "license": "ISC",
