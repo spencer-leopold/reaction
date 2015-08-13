@@ -42,6 +42,7 @@ ComponentFetcher.prototype.parseAndFetch = function(info) {
     headers.api = api;
   }
 
+  console.log(url);
   return this.handleRequest(method, url, data, headers, cache);
 }
 
