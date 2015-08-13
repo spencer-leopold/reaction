@@ -54,13 +54,17 @@ exports.Router = function(options) {
 exports.attachApp = function(options, server) {
   var ServerAdapter;
 
+  // Use variables to require adapter modules in order
+  // to hide them from requirejs
   if (options.serverAdapter) {
     ServerAdapter = options.serverAdapter;
   }
   else {
-    // Use variables to require adapter modules in order
-    // to hide them from requirejs
-    if (server.response) {
+    if (server.inspect && typeof server.inspect === 'function') {
+      var koaAdapter = './server/koaAdapter';
+      ServerAdapter = require(koaAdapter);
+    }
+    else if (server.response) {
       var expressAdapter = './server/expressAdapter';
       ServerAdapter = require(expressAdapter);
     }
