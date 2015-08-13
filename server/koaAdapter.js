@@ -74,11 +74,16 @@ KoaAdapter.prototype.attachApiProxy = function(apiPath, callback) {
     var body;
     var req = this.request;
 
+    var cbThunk = function(req) {
+      return function(cb) {
+        callback(req, cb);
+      };
+    }
+
     try {
-      body = yield callback(req);
+      body = yield cbThunk(req);
     }
-    catch (e) {
-    }
+    catch (e) {}
 
     this.body = body;
   }));
