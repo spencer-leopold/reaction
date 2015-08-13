@@ -71,15 +71,16 @@ KoaAdapter.prototype.attachApiProxy = function(apiPath, callback) {
   this.server.use(_mount(apiPath, function *(next) {
     yield next;
 
+    var body;
     var req = this.request;
-    var body = this.body;
 
-    var cb = function(response) {
-      console.log(response);
-      body = response;
+    try {
+      body = yield callback(req);
+    }
+    catch (e) {
     }
 
-    callback(req, cb);
+    this.body = body;
   }));
 }
 
