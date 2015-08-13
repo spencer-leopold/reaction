@@ -2,13 +2,12 @@ var request = require('request');
 var qs = require('qs2');
 var debug = require('debug')('reaction');
 var _ = require('../../shared/lodash.custom');
-var Promise = require('when');
 
 function RestAdapter(options) {
   this.options = options;
 }
 
-RestAdapter.prototype.request = function(req) {
+RestAdapter.prototype.request = function(req, callback) {
   var requestUrl = this.processUrl(req);
 
   var api = {
@@ -28,23 +27,21 @@ RestAdapter.prototype.request = function(req) {
   debug("RestAdapter request: %s from %s", api.method.toUpperCase(), api.url);
 
   var start = new Date().getTime(), end;
-  return Promise.promise(function(resolve, reject) {
-    request(api, function (err, response, body) {
-      if (err) {
-        return resolve(err);
-      }
+  request(api, function (err, response, body) {
+    if (err) {
+      return callback(null, err);
+    }
 
-      try {
-        body = JSON.parse(body);
-      }
-      catch (e) {
-        console.log(e);
-      }
+    try {
+      body = JSON.parse(body);
+    }
+    catch (e) {
+      console.log(e);
+    }
 
-      end = new Date().getTime();
-      debug("api request finished in %s seconds", (end - start) / 1000);
-      return resolve(body);
-    });
+    end = new Date().getTime();
+    debug("api request finished in %s seconds", (end - start) / 1000);
+    return callback(null, body);
   });
 }
 
