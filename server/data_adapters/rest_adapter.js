@@ -78,6 +78,7 @@ RestAdapter.prototype.processUrl = function(req) {
       url = url.substr(1);
     }
 
+    var apiPrefix = apiConfig.apiPrefix;
     var count = 0;
     var diff = '';
 
