@@ -31,8 +31,8 @@ RestifyAdapter.prototype.attachServerFetcher = function(callback) {
 
 RestifyAdapter.prototype.attachApiProxy = function(apiPath, callback) {
   this.server.use(apiPath, function(req, res, next) {
-    var callback = res.json.bind(res);
-    callback(req, callback);
+    var responsd = res.json.bind(res);
+    callback(req, responsd);
   });
 }
 

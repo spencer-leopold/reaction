@@ -31,8 +31,8 @@ ExpressAdapter.prototype.attachServerFetcher = function(callback) {
 
 ExpressAdapter.prototype.attachApiProxy = function(apiPath, callback) {
   this.server.use(apiPath, function(req, res, next) {
-    var callback = res.json.bind(res);
-    callback(req, callback);
+    var respond = res.json.bind(res);
+    callback(req, respond);
   });
 }
 

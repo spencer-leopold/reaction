@@ -53,32 +53,31 @@ KoaAdapter.prototype.attachServerFetcher = function(callback) {
   var run = this.attachAppDataAsync.bind(this);
 
   this.server.use(function *(next) {
+    yield next;
+
     var data, req = this.request;
 
     try {
       data = yield run(req);
     }
     catch (e) {
-      yield next;
     }
 
     req.reactionData = data;
-    yield next;
   });
 }
 
 KoaAdapter.prototype.attachApiProxy = function(apiPath, callback) {
+  function cbThunk(req) {
+    return function(cb) {
+      callback(req, cb);
+    };
+  }
+
   this.server.use(_mount(apiPath, function *(next) {
     yield next;
 
-    var body;
-    var req = this.request;
-
-    var cbThunk = function(req) {
-      return function(cb) {
-        callback(req, cb);
-      };
-    }
+    var body, req = this.request;
 
     try {
       body = yield cbThunk(req);
