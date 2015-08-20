@@ -128,13 +128,20 @@ ComponentFetcher.prototype.formatUrl = function(url, api) {
   if (url.charAt(0) === '/') {
     if (!!api) {
       if (isClient) {
-        apiPath = window.ReactionRouter.options.apiPath || '/api';
+        apiPath = window.ReactionRouter.options.apiPath;
+        // If apiPath is empty, Reaction is only being
+        // used on the client - outside of Node
+        if (apiPath !== '') {
+          apiPath = window.ReactionRouter.options.apiPath || '/api';
+        }
       }
       else {
         apiPath = this.options.apiPath || '/api';
       }
 
-      url = apiPath + '/-' + url;
+      if (apiPath !== '') {
+        url = apiPath + '/-' + url;
+      }
     }
 
     if (this.options.baseUrl) {
