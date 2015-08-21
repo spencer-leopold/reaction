@@ -139,9 +139,11 @@ BaseAdapter.prototype.attachAppData = function() {
   var handleNext = this.handleNext;
   var attachDataToRequest = this.attachDataToRequest;
   var run = this.attachAppDataAsync;
+  var routes = this.router.routes;
+  var options = this.options;
 
   return function(req, res, next) {
-    run(req).then(function(data) {
+    run(req, options, routes).then(function(data) {
       req.reactionData = data;
       handleNext(req, res, next);
     }).catch(function() {
@@ -150,10 +152,10 @@ BaseAdapter.prototype.attachAppData = function() {
   }
 }
 
-BaseAdapter.prototype.attachAppDataAsync = function(req) {
+BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
   var path;
-  var fetcher = ReactionFetcher(this.options);
-  var clientRoutes = this.router.routes;
+  var fetcher = ReactionFetcher(options);
+  var clientRoutes = routes;
 
   return new Promise(function(resolve, reject) {
 
