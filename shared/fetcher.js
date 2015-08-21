@@ -18,21 +18,23 @@ function ComponentFetcher(options) {
 }
 
 ComponentFetcher.prototype.setApi = function(api) {
-  this.api = api || 'default';
-  return this;
+  this.api = (typeof api === 'undefined') ? 'default' : api;
+}
+
+ComponentFetcher.prototype.getApi = function(api) {
+  return this.api;
 }
 
 ComponentFetcher.prototype.setBaseUrl = function(url) {
   this.options.baseUrl = url;
-  return this;
 }
 
 ComponentFetcher.prototype.parseAndFetch = function(info) {
-  var api = (typeof info.api === 'undefined') ? 'default' : info.api;
+  this.setApi(info.api);
+
   var method = info.method || 'get';
   var apiPath = this.options.apiPath || '/api';
-
-  var url = this.formatUrl(info.url, api);
+  var url = this.formatUrl(info.url);
 
   var data = info.data || {};
   var headers = info.headers || {};
@@ -45,6 +47,23 @@ ComponentFetcher.prototype.parseAndFetch = function(info) {
   console.log(url);
   return this.handleRequest(method, url, data, headers, cache);
 }
+
+ComponentFetcher.prototype.thunkCallback = function(resolve, reject) {
+  return function(err, res) {
+    if (err) {
+      return reject(err);
+    }
+    return resolve(res);
+  }
+};
+
+ComponentFetcher.prototype.thunkExecute = function(thunk) {
+  var _this = this;
+  return Promise.promise(function(resolve, reject) {
+    var callback = _this.thunkCallback(resolve, reject);
+    return thunk(callback);
+  });
+};
 
 ComponentFetcher.prototype.fetchData = function(routes, params, query) {
   var self = this;
@@ -75,10 +94,16 @@ ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data
           return data[route.name] = d;
         });
       }
-
-      return self.parseAndFetch(info).then(function(d) {
-        return data[route.name] = d;
-      });
+      else if (typeof info === 'function') {
+        return self.thunkExecute(info).then(function(d) {
+          return data[route.name] = d;
+        });
+      }
+      else {
+        return self.parseAndFetch(info).then(function(d) {
+          return data[route.name] = d;
+        });
+      }
     })
   ).then(function() {
     return data;
@@ -105,13 +130,19 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
           // set data to the passed in param
           if (typeof info.then === 'function') {
             return info.then(function(d) {
-              return data[route.name] = d;
+              return data[name] = d;
             });
           }
-
-          return self.parseAndFetch(info).then(function(d) {
-            return data[name] = d;
-          });
+          else if (typeof info === 'function') {
+            return self.thunkExecute(info).then(function(d) {
+              return data[name] = d;
+            });
+          }
+          else {
+            return self.parseAndFetch(info).then(function(d) {
+              return data[name] = d;
+            });
+          }
         })
       ).then(function() {
         return data;
@@ -122,8 +153,8 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
   });
 }
 
-ComponentFetcher.prototype.formatUrl = function(url, api) {
-  var apiPath;
+ComponentFetcher.prototype.formatUrl = function(url) {
+  var apiPath, api = this.getApi();
 
   if (url.charAt(0) === '/') {
     if (!!api) {
@@ -194,8 +225,9 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
 }
 
 function fetcher(options) {
-  this._api = 'default';
-  return new ComponentFetcher(options);
+  var f = new ComponentFetcher(options);
+  f.setApi(this._api || 'default');
+  return f;
 }
 
 // Convenience method to change
@@ -208,8 +240,8 @@ fetcher.api = function(api) {
 }
 
 fetcher.get = function(url, headers, cache) {
-  var f = fetcher().setApi(this._api);
-  url = f.formatUrl(url, this._api);
+  var f = fetcher();
+  url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
@@ -222,8 +254,8 @@ fetcher.get = function(url, headers, cache) {
 }
 
 fetcher.del = function(url, headers) {
-  var f = fetcher().setApi(this._api);
-  url = f.formatUrl(url, this._api);
+  var f = fetcher();
+  url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
@@ -233,8 +265,8 @@ fetcher.del = function(url, headers) {
 
 
 fetcher.head = function(url, data, headers) {
-  var f = fetcher().setApi(this._api);
-  url = f.formatUrl(url, this._api);
+  var f = fetcher();
+  url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
@@ -243,8 +275,8 @@ fetcher.head = function(url, data, headers) {
 }
 
 fetcher.patch = function(url, data, headers) {
-  var f = fetcher().setApi(this._api);
-  url = f.formatUrl(url, this._api);
+  var f = fetcher();
+  url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
@@ -253,8 +285,8 @@ fetcher.patch = function(url, data, headers) {
 }
 
 fetcher.post = function(url, data, headers) {
-  var f = fetcher().setApi(this._api);
-  url = f.formatUrl(url, this._api);
+  var f = fetcher();
+  url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
@@ -263,8 +295,8 @@ fetcher.post = function(url, data, headers) {
 }
 
 fetcher.put = function(url, data, headers) {
-  var f = fetcher().setApi(this._api);
-  url = f.formatUrl(url, this._api);
+  var f = fetcher();
+  url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
