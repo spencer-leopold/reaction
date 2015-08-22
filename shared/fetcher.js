@@ -40,11 +40,10 @@ ComponentFetcher.prototype.parseAndFetch = function(info) {
   var headers = info.headers || {};
   var cache = (typeof info.cache === 'undefined') ? true : info.cache;
 
-  if (api) {
-    headers.api = api;
+  if (!!info.api) {
+    headers.api = info.api;
   }
 
-  console.log(url);
   return this.handleRequest(method, url, data, headers, cache);
 }
 
@@ -66,19 +65,19 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
 };
 
 ComponentFetcher.prototype.fetchData = function(routes, params, query) {
-  var self = this;
+  var _this = this;
   var data = {};
 
   return Promise.all([
-    self.fetchRouteData(routes, params, query, data),
-    self.fetchPrefetchData(routes, params, query, data)
+    _this.fetchRouteData(routes, params, query, data),
+    _this.fetchPrefetchData(routes, params, query, data)
   ]).then(function() {
     return data;
   });
 }
 
 ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data) {
-  var self = this;
+  var _this = this;
 
   return Promise.all(routes
     .filter(function(route) {
@@ -95,12 +94,12 @@ ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data
         });
       }
       else if (typeof info === 'function') {
-        return self.thunkExecute(info).then(function(d) {
+        return _this.thunkExecute(info).then(function(d) {
           return data[route.name] = d;
         });
       }
       else {
-        return self.parseAndFetch(info).then(function(d) {
+        return _this.parseAndFetch(info).then(function(d) {
           return data[route.name] = d;
         });
       }
@@ -111,7 +110,7 @@ ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data
 }
 
 ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, data) {
-  var self = this;
+  var _this = this;
 
   return Promise.all(routes
     .filter(function(route) {
@@ -134,12 +133,12 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
             });
           }
           else if (typeof info === 'function') {
-            return self.thunkExecute(info).then(function(d) {
+            return _this.thunkExecute(info).then(function(d) {
               return data[name] = d;
             });
           }
           else {
-            return self.parseAndFetch(info).then(function(d) {
+            return _this.parseAndFetch(info).then(function(d) {
               return data[name] = d;
             });
           }
@@ -184,7 +183,8 @@ ComponentFetcher.prototype.formatUrl = function(url) {
 }
 
 ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
-  var self = this, allHeaders = { api: this.api };
+  var method = method.toLowerCase();
+  var allHeaders = { api: this.getApi() };
 
   if (method === 'get' && cacheResponse && memoryStore.get(url)) {
     return Promise.resolve(memoryStore.get(url));
@@ -194,7 +194,12 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
     var request = Request[method](url);
 
     if (data && typeof data === 'object') {
-      request.send(data);
+      if (method === 'get') {
+        request.query(data);
+      }
+      else {
+        request.send(data);
+      }
     }
 
     if (headers && typeof headers === 'object') {
@@ -212,6 +217,7 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
         reject(new Error('404 not found'));
       }
       else {
+        console.log(res);
         var data = res.body;
 
         if (method === 'get' && cacheResponse) {
