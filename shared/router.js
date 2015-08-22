@@ -423,6 +423,11 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           if (route.title) {
             document.title = route.title;
           }
+          else if (route.handler.setTitle) {
+            if (typeof route.handler.setTitle === 'function') {
+              document.title = route.handler.setTitle(state.params, state.query);
+            }
+          }
         });
       }
     });
