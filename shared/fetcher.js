@@ -185,9 +185,25 @@ ComponentFetcher.prototype.formatUrl = function(url) {
 ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
   var method = method.toLowerCase();
   var allHeaders = { api: this.getApi() };
+  var cacheUrl = url;
+  var ttlSec = 900;
+  var paramValue;
 
-  if (method === 'get' && cacheResponse && memoryStore.get(url)) {
-    return Promise.resolve(memoryStore.get(url));
+  // if sending params, add them to the cacheUrl
+  if (method === 'get' && data && typeof data === 'object') {
+    cacheUrl += '?';
+    // Note: we don't care that all cacheUrls with params
+    // will end with an =;
+    for (var param in data) {
+      if (data.hasOwnProperty(param)) {
+        paramValue = data[param];
+        cacheUrl += param + '=' + paramValue;
+      }
+    }
+  }
+
+  if (method === 'get' && !!cacheResponse && memoryStore.get(cacheUrl)) {
+    return Promise.resolve(memoryStore.get(cacheUrl));
   }
 
   return Promise.promise(function(resolve, reject) {
@@ -217,14 +233,17 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
         reject(new Error('404 not found'));
       }
       else {
-        console.log(res);
-        var data = res.body;
+        var body = res.body;
 
-        if (method === 'get' && cacheResponse) {
-          memoryStore.set(url, data, 900); // cache for 15 minutes
+        if (method === 'get' && !!cacheResponse) {
+          // Allow changing of cache limit
+          if (typeof cacheResponse === 'number') {
+            ttlSec = cacheResponse;
+          }
+          memoryStore.set(cacheUrl, body, ttlSec);
         }
 
-        resolve(data);
+        resolve(body);
       }
     });
   });
