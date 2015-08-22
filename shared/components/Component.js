@@ -21,8 +21,8 @@ var ReactionComponent = (function (_React$Component) {
 
     if (autoBind) {
       var proto = this.constructor.prototype;
-      var methods = Object.getOwnPropertyNames(proto).filter(function (method) {
-        return typeof proto[method] === 'function';
+      var methods = Object.getOwnPropertyNames(proto).filter(function(method) {
+        return method !== 'constructor' && typeof proto[method] === 'function';
       });
 
       methods.forEach((function (method) {
