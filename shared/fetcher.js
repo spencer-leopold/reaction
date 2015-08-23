@@ -32,6 +32,24 @@ ComponentFetcher.prototype.setBaseUrl = function(url) {
   this.options.baseUrl = url;
 }
 
+ComponentFetcher.prototype.replaceSegments = function(url, data) {
+  var dynamicRe = /\:([^\/\s]*)/g;
+  var matches = url.match(dynamicRe);
+
+  if (matches && matches.length) {
+    matches.forEach(function(match) {
+      var matchKey = match.replace(':', '');
+
+      if (~url.indexOf(match)) {
+        url = url.replace(match, data[matchKey]);
+        delete data[matchKey];
+      }
+    });
+  }
+
+  return url;
+}
+
 ComponentFetcher.prototype.parseAndFetch = function(info) {
   this.setApi(info.api);
 
@@ -188,9 +206,10 @@ ComponentFetcher.prototype.formatUrl = function(url) {
 ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
   var method = method.toLowerCase();
   var allHeaders = { api: this.getApi() };
-  var cacheUrl = url;
   var ttlSec = 900;
-  var paramValue;
+  var paramValue, cacheUrl;
+
+  cacheUrl = url = this.replaceSegments(url, data);
 
   // if sending params, add them to the cacheUrl
   if (method === 'get' && data && typeof data === 'object') {
