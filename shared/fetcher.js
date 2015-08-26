@@ -90,14 +90,15 @@ ComponentFetcher.prototype.fetchData = function(routes, params, query) {
   var data = {};
 
   return Promise.all([
-    _this.fetchRouteData(routes, params, query, data),
-    _this.fetchPrefetchData(routes, params, query, data)
+    _this.fetchFromRoute(routes, params, query, data),
+    _this.fetchFromPrefetchRoute(routes, params, query, data),
+    _this.fetchFromPrefetchComponents(routes, params, query, data)
   ]).then(function() {
     return data;
   });
 }
 
-ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data) {
+ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data) {
   var _this = this;
 
   return Promise.all(routes
@@ -130,7 +131,7 @@ ComponentFetcher.prototype.fetchRouteData = function(routes, params, query, data
   });
 }
 
-ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, data) {
+ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, query, data) {
   var _this = this;
 
   return Promise.all(routes
@@ -144,6 +145,50 @@ ComponentFetcher.prototype.fetchPrefetchData = function(routes, params, query, d
         })
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
+          var info = component.fetchData(params, query);
+
+          // if info is a Promise, execute if and 
+          // set data to the passed in param
+          if (typeof info.then === 'function') {
+            return info.then(function(d) {
+              return data[name] = d;
+            });
+          }
+          else if (typeof info === 'function') {
+            return _this.thunkExecute(info).then(function(d) {
+              return data[name] = d;
+            });
+          }
+          else {
+            return _this.parseAndFetch(info).then(function(d) {
+              return data[name] = d;
+            });
+          }
+        })
+      ).then(function() {
+        return data;
+      });
+    })
+  ).then(function() {
+    return data;
+  });
+}
+
+ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params, query, data) {
+  var _this = this;
+
+  return Promise.all(routes
+    .filter(function(route) {
+      return route.handler.prefetchComponents;
+    })
+    .map(function(route) {
+      var components = route.handler.prefetchComponents();
+      return Promise.all(Object.keys(components)
+        .filter(function(name) {
+          return components[name].fetchData;
+        })
+        .map(function(name) {
+          var component = components[name];
           var info = component.fetchData(params, query);
 
           // if info is a Promise, execute if and 
