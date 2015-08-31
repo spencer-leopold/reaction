@@ -272,7 +272,6 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
   var ttlSec = 900;
   var paramValue, cacheUrl;
 
-
   cacheUrl = url = this.replaceSegments(url, data);
 
   // if sending params, add them to the cacheUrl

@@ -19,6 +19,7 @@ RestAdapter.prototype.request = function(req, callback) {
   };
 
   delete api.headers['accept-encoding'];
+  delete api.headers['host'];
 
   if (req.method === 'GET') {
     delete api.json;
@@ -94,8 +95,29 @@ RestAdapter.prototype.processUrl = function(req) {
     endPoint = diff + url;
   }
 
-  if (apiConfig && apiConfig.apiPrefix && ~endPoint.indexOf(apiConfig.apiPrefix)) {
-    url = apiConfig.protocol + '://' + apiConfig.host + ':' + apiConfig.port + endPoint;
+  if (!!apiConfig) {
+    var protocol = '';
+    var port = '';
+    var host = '';
+    var prefix = '';
+
+    if (!!apiConfig.protocol) {
+      protocol = apiConfig.protocol + '://';
+    }
+
+    if (!!apiConfig.host) {
+      host = apiConfig.host;
+    }
+
+    if (!!apiConfig.port) {
+      port = ':' + apiConfig.port;
+    }
+
+    if (!!apiConfig.apiPrefix && endPoint.indexOf(apiConfig.apiPrefix) === -1) {
+      apiPrefix = apiConfig.apiPrefix;
+    }
+
+    url = protocol + host + port + apiPrefix + endPoint;
   }
   else {
     var protocol = '';
