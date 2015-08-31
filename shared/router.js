@@ -190,7 +190,14 @@ ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRou
       parentRoute.prefetchHandlers = [];
     }
 
-    var handler = this.loadComponent(childRoute.handler);
+    var handler;
+    if (typeof childRoute.handler === 'string') {
+      handler = this.loadComponent(childRoute.handler);
+    }
+    else {
+      handler = childRoute.handler;
+    }
+
     parentRoute.prefetchHandlers.push(handler);
   }
 
@@ -305,10 +312,12 @@ ReactionRouter.prototype.processRoute = function(route, parent) {
       reactRoute = ReactRouter.createRoute(route);
     }
     else {
-      // Attach the React component, it's originally set as
+      // Attach the React component, it can be set as
       // a string to prevent having to require all components
       // in the routes configuration
-      route.handler = this.loadComponent(route.handler);
+      if (typeof route.handler === 'string') {
+        route.handler = this.loadComponent(route.handler);
+      }
 
       if (route.handler.willTransitionTo) {
         route.onEnter = route.handler.willTransitionTo;
