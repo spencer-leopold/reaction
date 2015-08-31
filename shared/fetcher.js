@@ -32,9 +32,27 @@ ComponentFetcher.prototype.setBaseUrl = function(url) {
   this.options.baseUrl = url;
 }
 
+ComponentFetcher.prototype.extractDomain = function(url) {
+  var baseUrl;
+
+  if (url.indexOf('://') > -1) {
+    baseUrl = url.split('/')[2];
+  }
+  else {
+    baseUrl = url.split('/')[0];
+  }
+
+  return baseUrl;
+}
+
 ComponentFetcher.prototype.replaceSegments = function(url, data) {
+  var matches;
+  var baseUrl = (!!this.options.baseUrl) ? this.options.baseUrl : this.extractDomain(url);
   var dynamicRe = /\:([^\/\s]*)/g;
-  var matches = url.match(dynamicRe);
+
+  // remove domain before finding matches
+  url = url.replace(baseUrl, '');
+  matches = url.match(dynamicRe);
 
   if (matches && matches.length) {
     matches.forEach(function(match) {
@@ -47,7 +65,7 @@ ComponentFetcher.prototype.replaceSegments = function(url, data) {
     });
   }
 
-  return url;
+  return baseUrl + url;
 }
 
 ComponentFetcher.prototype.parseAndFetch = function(info) {
@@ -253,6 +271,7 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
   var allHeaders = { api: this.getApi() };
   var ttlSec = 900;
   var paramValue, cacheUrl;
+
 
   cacheUrl = url = this.replaceSegments(url, data);
 
