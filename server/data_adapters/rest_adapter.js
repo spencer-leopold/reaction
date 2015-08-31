@@ -13,13 +13,12 @@ RestAdapter.prototype.request = function(req, callback) {
   var api = {
     url: requestUrl,
     method: req.method || 'get',
-    headers: req.headers || {},
+    headers: {
+      'User-Agent': 'ReactionApp'
+    },
     json: req.body || req.payload || {},
     params: req.params || {}
   };
-
-  delete api.headers['accept-encoding'];
-  delete api.headers['host'];
 
   if (req.method === 'GET') {
     delete api.json;
