@@ -411,7 +411,22 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
         React.render(React.createFactory(Handler)(appData), el);
       }
       else {
+        var data = {};
+
+        if (!data.path) {
+          data.path = state.path;
+        }
+        if (!data.params) {
+          data.params = state.params;
+        }
+        if (!data.query) {
+          data.query = state.query;
+        }
+
+        React.render(React.createFactory(Handler)(data), el);
+
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
+
           if (!data.path) {
             data.path = state.path;
           }
