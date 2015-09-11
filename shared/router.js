@@ -3,6 +3,7 @@ var ReactRouter = require('react-router');
 var ReactionRouterComponents = require('./components');
 var ReactionFetcher = require('./fetcher');
 var eventMixin = require('./events').mixin;
+var EventDispatcher = require('./events').Dispatcher;
 var _ = require('./lodash.custom');
 
 function ReactionRouter(options) {
@@ -407,6 +408,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
 
   window.onload = function() {
     ReactRouter.run(_this.buildRoutes(), locationType, function (Handler, state) {
+
       if (appData && typeof appData === 'object' && appData.path === state.path) {
         React.render(React.createFactory(Handler)(appData), el);
       }
@@ -424,7 +426,9 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
         }
 
         React.render(React.createFactory(Handler)(data), el);
+        EventDispatcher.trigger('routes:init');
 
+        EventDispatcher.trigger('route:fetchData:start');
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
 
           if (!data.path) {
@@ -438,6 +442,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           }
 
           React.render(React.createFactory(Handler)(data), el);
+          EventDispatcher.trigger('route:fetchData:finish');
         });
       }
 

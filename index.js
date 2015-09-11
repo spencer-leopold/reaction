@@ -45,7 +45,7 @@ exports.preFetch = React.createFactory(Prefetch);
 
 exports.Fetcher = Fetcher;
 
-exports.Events = Events;
+exports.Events = Events.Dispatcher;
 
 exports.Router = function(options) {
   return new ReactionRouter(options);
