@@ -4,7 +4,7 @@ var debug = require('debug')('reaction');
 var _ = require('../../shared/lodash.custom');
 
 function RestAdapter(options) {
-  this.options = options;
+  this.options = options || {};
 }
 
 RestAdapter.prototype.request = function(req, callback) {
