@@ -154,6 +154,7 @@ BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
   var path;
   var fetcher = ReactionFetcher(options);
   var clientRoutes = routes;
+  var errorHandler = this.errorHandler();
 
   return new Promise(function(resolve, reject) {
 
@@ -189,37 +190,42 @@ BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
       });
 
       if (isNotFound) {
-        reject();
+        var data = {
+          body: errorHandler(404),
+          appData: {} 
+        };
+
+        resolve(data);
       }
       else {
-        fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
+        fetcher.fetchData(state.routes, state.params, state.query).then(function(routeData) {
 
           // Check for a page title
           state.routes.forEach(function(route) {
             if (route.title) {
-              data.title = route.title;
+              routeData.title = route.title;
             }
           });
 
-          if (!data.path) {
-            data.path = path;
+          if (!routeData.path) {
+            routeData.path = path;
           }
-          if (!data.params) {
-            data.params = state.params;
+          if (!routeData.params) {
+            routeData.params = state.params;
           }
-          if (!data.query) {
-            data.query = state.query;
+          if (!routeData.query) {
+            routeData.query = state.query;
           }
 
-          data.baseUrl = baseUrl;
+          routeData.baseUrl = baseUrl;
 
-          var markup = React.renderToString(React.createFactory(Handler)(data));
+          var markup = React.renderToString(React.createFactory(Handler)(routeData));
 
           // attach the markup and initial data to the request
           // object to be injected into layout templates
           var data = {
             body: markup,
-            appData: data
+            appData: routeData 
           };
 
           resolve(data);
