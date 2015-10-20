@@ -49,24 +49,6 @@ KoaAdapter.prototype.addRoute = function(route, handler) {
   }));
 }
 
-KoaAdapter.prototype.attachServerFetcher = function(callback) {
-  var run = this.attachAppDataAsync.bind(this);
-
-  this.server.use(function *(next) {
-    yield next;
-
-    var data, req = this.request;
-
-    try {
-      data = yield run(req);
-    }
-    catch (e) {
-    }
-
-    req.reactionData = data;
-  });
-}
-
 KoaAdapter.prototype.attachApiProxy = function(apiPath, callback) {
   function cbThunk(req) {
     return function(cb) {

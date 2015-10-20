@@ -35,12 +35,6 @@ HapiAdapter.prototype.addRoute = function(route, handler) {
   });
 }
 
-HapiAdapter.prototype.attachServerFetcher = function(callback) {
-  this.server.ext('onPreHandler', function(req, reply) {
-    callback(req, reply);
-  });
-}
-
 HapiAdapter.prototype.attachApiProxy = function(apiPath, callback) {
   this.server.route({
     method: '*',

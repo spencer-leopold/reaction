@@ -23,12 +23,6 @@ RestifyAdapter.prototype.addRoute = function(route, handler) {
   this.server.get(route.path, handler);
 }
 
-RestifyAdapter.prototype.attachServerFetcher = function(callback) {
-  this.server.use(function(req, res, next) {
-    callback(req, res, next);
-  });
-}
-
 RestifyAdapter.prototype.attachApiProxy = function(apiPath, callback) {
   this.server.use(apiPath, function(req, res, next) {
     var responsd = res.json.bind(res);

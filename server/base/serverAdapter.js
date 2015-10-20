@@ -69,6 +69,10 @@ BaseAdapter.prototype.buildHandler = function(options) {
   var templatesDir = this.router.options.paths.templatesDir;
   var routeTemplate = options.template || 'layout';
 
+  var renderReactApp = this.renderReactApp;
+  var routes = this.router.routes;
+  var appOptions = this.options;
+
   // Rewrite app paths for use on client-side
   var clientOptions = _.cloneDeep(this.router.options);
   clientOptions.entryPath = '';
@@ -83,78 +87,69 @@ BaseAdapter.prototype.buildHandler = function(options) {
     }
     else {
       handler = function(request, response, next) {
-        options.handle(request, response, next);
+        renderReactApp(request, appOptions, routes).then(function(data) {
+          request.reactionData = data;
+          options.handle(request, response, next);
+        }).catch(function(e) {
+          console.log(e);
+        });
       }
     }
   }
   else {
     handler = function(request, response, next) {
-      var reactionData = request.reactionData || {};
-      var pageTitle = 'Reaction App';
 
-      if (reactionData.appData && reactionData.appData.title) {
-        pageTitle = reactionData.appData.title;
-      }
+      renderReactRoute(request, appOptions, routes).then(function(data) {
+        var reactionData = data || {};
+        var pageTitle = 'Reaction App';
 
-      var templateVars = {
-        body: reactionData.body,
-        appData: reactionData.appData,
-        title: pageTitle,
-        start: function(replaceElement, locationType) {
-          if (!replaceElement) {
-            replaceElement = 'document.body';
-          }
-          var o = "<script type='text/javascript'>";
-          o += "(function() {\n";
-          o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
-          o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
-          o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
-          o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
-          o += "})();\n";
-          o += "</script>";
-
-          return o;
+        if (reactionData.appData && reactionData.appData.title) {
+          pageTitle = reactionData.appData.title;
         }
-      }
 
-      var layoutTemplate = require(templatesDir + '/' + routeTemplate);
-      var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
+        var templateVars = {
+          body: reactionData.body,
+          appData: reactionData.appData,
+          title: pageTitle,
+          start: function(replaceElement, locationType) {
+            if (!replaceElement) {
+              replaceElement = 'document.body';
+            }
+            var o = "<script type='text/javascript'>";
+            o += "(function() {\n";
+            o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
+            o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
+            o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
+            o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
+            o += "})();\n";
+            o += "</script>";
 
-      handleResponse(request, response, markup);
+            return o;
+          }
+        }
 
-      if (next) {
-        handleNext(request, response, next);
-      }
+        var layoutTemplate = require(templatesDir + '/' + routeTemplate);
+        var markup = React.renderToString(React.createFactory(layoutTemplate)(templateVars));
+
+        handleResponse(request, response, markup);
+
+        if (next) {
+          handleNext(request, response, next);
+        }
+      }).catch(function(e) {
+        console.log(e);
+      });
     }
   }
 
   return handler;
 }
 
-BaseAdapter.prototype.attachAppData = function() {
-  var fetcher = ReactionFetcher(this.options);
-  var clientRoutes = this.router.routes;
-  var handleNext = this.handleNext;
-  var attachDataToRequest = this.attachDataToRequest;
-  var run = this.attachAppDataAsync;
-  var routes = this.router.routes;
-  var options = this.options;
-
-  return function(req, res, next) {
-    run(req, options, routes).then(function(data) {
-      req.reactionData = data;
-      handleNext(req, res, next);
-    }).catch(function() {
-      handleNext(req, res, next);
-    });
-  }
-}
-
-BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
+BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
   var path;
   var fetcher = ReactionFetcher(options);
   var clientRoutes = routes;
-  var errorHandler = this.errorHandler();
+  // var errorHandler = this.errorHandler();
 
   return new Promise(function(resolve, reject) {
 
@@ -263,8 +258,6 @@ BaseAdapter.prototype.errorHandler = function() {
 BaseAdapter.prototype.onRoutesFinished = function() {
   var route, handler, routes = this.serverRoutes;
 
-  this.attachServerFetcher(this.attachAppData());
-
   for (var i in routes) {
     route = routes[i];
     handler = this.buildHandler(route.options);
@@ -307,10 +300,6 @@ BaseAdapter.prototype.attachErrorHandler = function(renderTemplateCb) {
 // like when using Hapi
 BaseAdapter.prototype.formatParams = function(path) {
   return path;
-}
-
-BaseAdapter.prototype.attachServerFetcher = function(path, options) {
-  throw new Error('`attachServerFetcher` needs to be implemented');
 }
 
 BaseAdapter.prototype.attachApiProxy = function(options) {
