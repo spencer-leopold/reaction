@@ -35,7 +35,7 @@ ComponentFetcher.prototype.setBaseUrl = function(url) {
 ComponentFetcher.prototype.extractDomain = function(url) {
   var baseUrl;
 
-  if (url.indexOf('://') > -1) {
+  if (~url.indexOf('://')) {
     baseUrl = url.split('/')[2];
   }
   else {
@@ -43,6 +43,29 @@ ComponentFetcher.prototype.extractDomain = function(url) {
   }
 
   return baseUrl;
+}
+
+ComponentFetcher.prototype.isAbsoluteUrl = function(url) {
+  var firstPathIdx, domain;
+
+  if (~url.indexOf('://')) {
+    return true;
+  }
+
+  if (url.charAt(0) === '/') {
+    return false;
+  }
+
+  // shouldn't get to this point unless the user
+  // enters an invalid url, but check regardless
+  firstPathIdx = url.indexOf('/');
+  domain = url.substr(0, firstPathIdx);
+
+  if (!domain.indexOf('.')) {
+    return true;
+  }
+
+  return false;
 }
 
 ComponentFetcher.prototype.replaceSegments = function(url, data) {
@@ -237,16 +260,20 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
 }
 
 ComponentFetcher.prototype.formatUrl = function(url) {
-  var apiPath, api = this.getApi();
+  var apiPath, apiConfig, appOptions = false, api = this.getApi();
+
+  if (isClient) {
+    appOptions = window.ReactionRouter.options;
+  }
 
   if (url.charAt(0) === '/') {
     if (!!api) {
-      if (isClient) {
-        apiPath = window.ReactionRouter.options.apiPath;
+      if (appOptions) {
+        apiPath = appOptions.apiPath;
         // If apiPath is empty, Reaction is only being
         // used on the client - outside of Node
         if (apiPath !== '') {
-          apiPath = window.ReactionRouter.options.apiPath || '/api';
+          apiPath = appOptions.apiPath || '/api';
         }
       }
       else {
@@ -256,12 +283,26 @@ ComponentFetcher.prototype.formatUrl = function(url) {
       if (apiPath !== '') {
         url = apiPath + '/-' + url;
       }
-    }
+      else {
+        if (appOptions && !!appOptions.api) {
+          apiConfig = appOptions.api[api] || appOptions.api['default'] || appOptions.api;
 
-    if (this.options.baseUrl) {
-      url = this.options.baseUrl + url;
+          // Check if theres an apiPrefix and the url doesn't already contain it
+          if (!!apiConfig.prefix && url.indexOf(apiConfig.prefix) === -1) {
+            url = apiConfig.prefix + url;
+          }
+        }
+      }
     }
   }
+
+  if (!this.isAbsoluteUrl(url)) {
+    if (this.options.baseUrl) {
+      url = this.options.baseUrl + '/' + url;
+    }
+  }
+
+  console.log(url);
 
   return url;
 }
@@ -272,7 +313,12 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
   var ttlSec = 900;
   var paramValue, cacheUrl;
 
-  cacheUrl = url = this.replaceSegments(url, data);
+  if (this.isAbsoluteUrl(url)) {
+    cacheUrl = url;
+  }
+  else {
+    cacheUrl = url = this.replaceSegments(url, data);
+  }
 
   // if sending params, add them to the cacheUrl
   if (method === 'get' && data && typeof data === 'object') {
@@ -294,6 +340,7 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
   return Promise.promise(function(resolve, reject) {
     var request = Request[method](url);
 
+    console.log(url);
     if (data && typeof data === 'object') {
       if (method === 'get') {
         request.query(data);
