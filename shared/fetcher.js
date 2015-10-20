@@ -302,8 +302,6 @@ ComponentFetcher.prototype.formatUrl = function(url) {
     }
   }
 
-  console.log(url);
-
   return url;
 }
 
@@ -340,7 +338,6 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
   return Promise.promise(function(resolve, reject) {
     var request = Request[method](url);
 
-    console.log(url);
     if (data && typeof data === 'object') {
       if (method === 'get') {
         request.query(data);
