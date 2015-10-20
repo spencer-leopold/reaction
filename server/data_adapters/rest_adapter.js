@@ -28,15 +28,19 @@ RestAdapter.prototype.request = function(req, callback) {
 
   var start = new Date().getTime(), end;
   request(api, function (err, response, body) {
+    var contentType = response.headers['content-type'] || '';
+
     if (err) {
       return callback(null, err);
     }
 
-    try {
-      body = JSON.parse(body);
-    }
-    catch (e) {
-      console.log(e);
+    if (typeof body === 'string' && ~contentType.indexOf('application/json')) {
+      try {
+        body = JSON.parse(body);
+      }
+      catch (e) {
+        console.log(e);
+      }
     }
 
     end = new Date().getTime();

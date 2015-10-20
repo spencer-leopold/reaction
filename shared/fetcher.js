@@ -298,7 +298,14 @@ ComponentFetcher.prototype.formatUrl = function(url) {
 
   if (!this.isAbsoluteUrl(url)) {
     if (this.options.baseUrl) {
-      url = this.options.baseUrl + '/' + url;
+      var baseUrl = this.options.baseUrl;
+      var sep = '/';
+
+      if (baseUrl.charAt(baseUrl.length) === '/' || url.charAt(0) === '/') {
+        sep = '';
+      }
+
+      url = this.options.baseUrl + sep + url;
     }
   }
 
