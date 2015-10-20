@@ -5,7 +5,6 @@
 
 var React = require('react');
 var ReactRouter = require('react-router');
-var Match = require('../../node_modules/react-router/lib/Match');
 var ReactionFetcher = require('../../shared/fetcher');
 var Router = require('../../shared/router');
 var qs = require('qs2');
@@ -58,7 +57,6 @@ BaseAdapter.prototype.parseRoute = function(event, options, component, mainCompo
       }
 
       this.serverRoutes.push({ path: path, options: options });
-      this.serverRoutePaths.push(path);
     }
   }
 }
@@ -166,12 +164,9 @@ BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
       path = req.url.path;
     }
 
-    var pathExists = Match.findMatch(clientRoutes, path);
+    var baseUrl = options.baseUrl || false;
 
-    if (!pathExists) {
-      reject();
-    }
-    else {
+    if (!baseUrl) {
       var protocol = '';
       var host = req.headers.host;
 
@@ -179,15 +174,24 @@ BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
         protocol = 'http://';
       }
 
-      var baseUrl = protocol + host;
+      baseUrl = protocol + host;
+    }
 
-      if (req.query && !_.isEmpty(req.query) && path.indexOf('?') === -1) {
-        path += '?' + qs.stringify(req.query);
+    fetcher.setBaseUrl(baseUrl);
+
+    if (req.query && !_.isEmpty(req.query) && path.indexOf('?') === -1) {
+      path += '?' + qs.stringify(req.query);
+    }
+
+    ReactRouter.run(clientRoutes, path, function(Handler, state) {
+      var isNotFound = state.routes.some(function(route) {
+        return route.isNotFound;
+      });
+
+      if (isNotFound) {
+        reject();
       }
-
-      fetcher.setBaseUrl(baseUrl);
-
-      ReactRouter.run(clientRoutes, path, function(Handler, state) {
+      else {
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
 
           // Check for a page title
@@ -220,9 +224,8 @@ BaseAdapter.prototype.attachAppDataAsync = function(req, options, routes) {
 
           resolve(data);
         });
-      });
-    }
-
+      }
+    });
   });
 }
 
