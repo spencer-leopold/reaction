@@ -23,6 +23,7 @@
   "author": "Spencer Leopold",
   "license": "ISC",
   "dependencies": {
+    "debug": "^2.2.0",
     "node-jsx": "^0.12.4",
     "qs2": "^0.6.6",
     "react": "^0.13.3",
