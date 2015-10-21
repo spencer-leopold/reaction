@@ -432,10 +432,9 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           data.query = state.query;
         }
 
-        React.render(React.createFactory(Handler)(data), el);
         EventDispatcher.trigger('routes:init');
-
         EventDispatcher.trigger('route:fetchData:start');
+
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
 
           if (!data.path) {
