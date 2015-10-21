@@ -35,11 +35,24 @@ var ReactionComponent = (function (_React$Component) {
 
   _createClass(ReactionComponent, [{
     key: 'fetch',
-    value: function fetch() {
-      if (!arguments.length || arguments.length === 1 && typeof arguments[0] === 'boolean') {
-        var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
-        return fetcher(this.props).parseAndFetch(info);
+    value: function fetch(stateKey) {
+      var _this = this;
+      var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+
+      if (!!stateKey && typeof stateKey === 'string') {
+        return fetcher(this.props).parseAndFetch(info).then(function(res) {
+
+          var stateObj = function() {
+            var returnObj = {};
+            returnObj[stateKey] = res;
+            return returnObj;
+          };
+
+          _this.setState(stateObj);
+        }).catch(console.log.bind(console));
       }
+
+      return fetcher(this.props).parseAndFetch(info);
     }
   }, {
     key: 'fetcher',
