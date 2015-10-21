@@ -135,12 +135,12 @@ ComponentFetcher.prototype.fetchDataExec = function(info, data, name) {
     });
   }
   else if (typeof info === 'function') {
-    return _this.thunkExecute(info).then(function(d) {
+    return this.thunkExecute(info).then(function(d) {
       return data[name] = d;
     });
   }
   else {
-    return _this.parseAndFetch(info).then(function(d) {
+    return this.parseAndFetch(info).then(function(d) {
       return data[name] = d;
     });
   }
