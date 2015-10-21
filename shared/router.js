@@ -420,20 +420,9 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
         React.render(React.createFactory(Handler)(appData), el);
       }
       else {
-        var data = {};
-
-        if (!data.path) {
-          data.path = state.path;
-        }
-        if (!data.params) {
-          data.params = state.params;
-        }
-        if (!data.query) {
-          data.query = state.query;
-        }
 
         EventDispatcher.trigger('routes:init');
-        EventDispatcher.trigger('route:fetchData:start');
+        EventDispatcher.trigger('route:fetchData:start', state.path);
 
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
 
@@ -448,7 +437,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           }
 
           React.render(React.createFactory(Handler)(data), el);
-          EventDispatcher.trigger('route:fetchData:finish');
+          EventDispatcher.trigger('route:fetchData:finish', state.path);
         });
       }
 
