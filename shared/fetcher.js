@@ -346,6 +346,9 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
         resolve(body);
       }
     });
+  }).catch(function(e) {
+    console.log(e);
+    console.log('offending url: %s', url);
   });
 }
 
