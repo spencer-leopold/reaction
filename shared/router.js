@@ -250,15 +250,22 @@ ReactionRouter.prototype.parseRoutes = function(routes) {
 }
 
 ReactionRouter.prototype.buildRoutes = function() {
+  var routes;
   var options = this.options;
-  var routeBuilder = this.loadRoutesFromFile();
+  var loadedRoutes = this.loadRoutesFromFile();
 
   if (options.entryPoints) {
     this.loadRoutesFromComponent(options.entryPoints);
   }
 
-  if (routeBuilder) {
-    var routes = routeBuilder(ReactionRouterComponents);
+  if (loadedRoutes) {
+    if (typeof loadedRoutes === 'function') {
+      routes = loadedRoutes(ReactionRouterComponents);
+    }
+    else {
+      routes = loadedRoutes;
+    }
+
     this.parseRoutes(routes);
   }
 
