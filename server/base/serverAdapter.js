@@ -99,7 +99,7 @@ BaseAdapter.prototype.buildHandler = function(options) {
   else {
     handler = function(request, response, next) {
 
-      renderReactRoute(request, appOptions, routes).then(function(data) {
+      renderReactApp(request, appOptions, routes).then(function(data) {
         var reactionData = data || {};
         var pageTitle = 'Reaction App';
 
