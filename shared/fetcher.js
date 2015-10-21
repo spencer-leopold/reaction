@@ -126,6 +126,26 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
   });
 };
 
+ComponentFetcher.prototype.fetchDataExec = function(info, data, name) {
+  // if info is a Promise, execute if and 
+  // set data to the passed in param
+  if (!!info.then && typeof info.then === 'function') {
+    return info.then(function(d) {
+      return data[name] = d;
+    });
+  }
+  else if (typeof info === 'function') {
+    return _this.thunkExecute(info).then(function(d) {
+      return data[name] = d;
+    });
+  }
+  else {
+    return _this.parseAndFetch(info).then(function(d) {
+      return data[name] = d;
+    });
+  }
+}
+
 ComponentFetcher.prototype.fetchData = function(routes, params, query) {
   var _this = this;
   var data = {};
@@ -148,24 +168,7 @@ ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data
     })
     .map(function(route) {
       var info = route.handler.fetchData(params, query);
-
-      // if info is a Promise, execute if and 
-      // set data to the passed in param
-      if (typeof info.then === 'function') {
-        return info.then(function(d) {
-          return data[route.name] = d;
-        });
-      }
-      else if (typeof info === 'function') {
-        return _this.thunkExecute(info).then(function(d) {
-          return data[route.name] = d;
-        });
-      }
-      else {
-        return _this.parseAndFetch(info).then(function(d) {
-          return data[route.name] = d;
-        });
-      }
+      return _this.fetchDataExec(info, data, route.name);
     })
   ).then(function() {
     return data;
@@ -187,24 +190,7 @@ ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, que
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params, query);
-
-          // if info is a Promise, execute if and 
-          // set data to the passed in param
-          if (typeof info.then === 'function') {
-            return info.then(function(d) {
-              return data[name] = d;
-            });
-          }
-          else if (typeof info === 'function') {
-            return _this.thunkExecute(info).then(function(d) {
-              return data[name] = d;
-            });
-          }
-          else {
-            return _this.parseAndFetch(info).then(function(d) {
-              return data[name] = d;
-            });
-          }
+          return _this.fetchDataExec(info, data, name);
         })
       ).then(function() {
         return data;
@@ -231,24 +217,7 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
         .map(function(name) {
           var component = components[name];
           var info = component.fetchData(params, query);
-
-          // if info is a Promise, execute if and 
-          // set data to the passed in param
-          if (typeof info.then === 'function') {
-            return info.then(function(d) {
-              return data[name] = d;
-            });
-          }
-          else if (typeof info === 'function') {
-            return _this.thunkExecute(info).then(function(d) {
-              return data[name] = d;
-            });
-          }
-          else {
-            return _this.parseAndFetch(info).then(function(d) {
-              return data[name] = d;
-            });
-          }
+          return _this.fetchDataExec(info, data, name);
         })
       ).then(function() {
         return data;
