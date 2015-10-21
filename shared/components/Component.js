@@ -34,8 +34,8 @@ var ReactionComponent = (function (_React$Component) {
   _inherits(ReactionComponent, _React$Component);
 
   _createClass(ReactionComponent, [{
-    key: 'fetch',
-    value: function fetch(stateKey) {
+    key: 'hydrate',
+    value: function hydrate(stateKey) {
       var _this = this;
       var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
 
