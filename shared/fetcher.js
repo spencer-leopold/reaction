@@ -32,65 +32,6 @@ ComponentFetcher.prototype.setBaseUrl = function(url) {
   this.options.baseUrl = url;
 }
 
-ComponentFetcher.prototype.extractDomain = function(url) {
-  var baseUrl;
-
-  if (~url.indexOf('://')) {
-    baseUrl = url.split('/')[2];
-  }
-  else {
-    baseUrl = url.split('/')[0];
-  }
-
-  return baseUrl;
-}
-
-ComponentFetcher.prototype.isAbsoluteUrl = function(url) {
-  var firstPathIdx, domain;
-
-  if (~url.indexOf('://')) {
-    return true;
-  }
-
-  if (url.charAt(0) === '/') {
-    return false;
-  }
-
-  // shouldn't get to this point unless the user
-  // enters an invalid url, but check regardless
-  firstPathIdx = url.indexOf('/');
-  domain = url.substr(0, firstPathIdx);
-
-  if (!domain.indexOf('.')) {
-    return true;
-  }
-
-  return false;
-}
-
-ComponentFetcher.prototype.replaceSegments = function(url, data) {
-  var matches;
-  var baseUrl = (!!this.options.baseUrl) ? this.options.baseUrl : this.extractDomain(url);
-  var dynamicRe = /\:([^\/\s]*)/g;
-
-  // remove domain before finding matches
-  url = url.replace(baseUrl, '');
-  matches = url.match(dynamicRe);
-
-  if (matches && matches.length) {
-    matches.forEach(function(match) {
-      var matchKey = match.replace(':', '');
-
-      if (~url.indexOf(match)) {
-        url = url.replace(match, data[matchKey]);
-        delete data[matchKey];
-      }
-    });
-  }
-
-  return baseUrl + url;
-}
-
 ComponentFetcher.prototype.parseAndFetch = function(info) {
   this.setApi(info.api);
 
@@ -228,6 +169,65 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
   });
 }
 
+ComponentFetcher.prototype.extractDomain = function(url) {
+  var baseUrl;
+
+  if (~url.indexOf('://')) {
+    baseUrl = url.split('/')[2];
+  }
+  else {
+    baseUrl = url.split('/')[0];
+  }
+
+  return baseUrl;
+}
+
+ComponentFetcher.prototype.isAbsoluteUrl = function(url) {
+  var firstPathIdx, domain;
+
+  if (~url.indexOf('://')) {
+    return true;
+  }
+
+  if (url.charAt(0) === '/') {
+    return false;
+  }
+
+  // shouldn't get to this point unless the user
+  // enters an invalid url, but check regardless
+  firstPathIdx = url.indexOf('/');
+  domain = url.substr(0, firstPathIdx);
+
+  if (!domain.indexOf('.')) {
+    return true;
+  }
+
+  return false;
+}
+
+ComponentFetcher.prototype.replaceSegments = function(url, data) {
+  var matches;
+  var baseUrl = (!!this.options.baseUrl) ? this.options.baseUrl : this.extractDomain(url);
+  var dynamicRe = /\:([^\/\s]*)/g;
+
+  // remove domain before finding matches
+  url = url.replace(baseUrl, '');
+  matches = url.match(dynamicRe);
+
+  if (matches && matches.length) {
+    matches.forEach(function(match) {
+      var matchKey = match.replace(':', '');
+
+      if (~url.indexOf(match)) {
+        url = url.replace(match, data[matchKey]);
+        delete data[matchKey];
+      }
+    });
+  }
+
+  return baseUrl + url;
+}
+
 ComponentFetcher.prototype.formatUrl = function(url) {
   var apiPath, apiConfig, appOptions = false, api = this.getApi();
 
@@ -287,12 +287,7 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
   var ttlSec = 900;
   var paramValue, cacheUrl;
 
-  if (this.isAbsoluteUrl(url)) {
-    cacheUrl = url;
-  }
-  else {
-    cacheUrl = url = this.replaceSegments(url, data);
-  }
+  cacheUrl = url = this.replaceSegments(url, data);
 
   // if sending params, add them to the cacheUrl
   if (method === 'get' && data && typeof data === 'object') {
