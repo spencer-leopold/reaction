@@ -56,7 +56,6 @@ var ReactionComponent = (function (_React$Component) {
             return returnObj;
           };
 
-          console.log('component hydrated');
           _this.setState(stateObj);
         }).catch(console.log.bind(console));
       }
