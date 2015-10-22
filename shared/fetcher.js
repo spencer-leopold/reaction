@@ -91,6 +91,10 @@ ComponentFetcher.prototype.fetchData = function(routes, params, query) {
   var _this = this;
   var data = {};
 
+  if (isClient) {
+    return Promise.resolve(data);
+  }
+
   return Promise.all([
     _this.fetchFromRoute(routes, params, query, data),
     _this.fetchFromPrefetchRoute(routes, params, query, data),

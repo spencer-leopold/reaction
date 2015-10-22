@@ -11,6 +11,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 var React = require('react');
 var ReactRouter = require('react-router');
 var fetcher = require('../fetcher');
+var Events = require('../events').Dispatcher;
 
 var ReactionComponent = (function (_React$Component) {
   function ReactionComponent(props) {
@@ -28,6 +29,13 @@ var ReactionComponent = (function (_React$Component) {
       methods.forEach((function (method) {
         this[method] = this[method].bind(this);
       }).bind(this));
+    }
+
+    if (!!this.constructor.name) {
+      var name = this.constructor.name;
+      var stateKey = name.charAt(0).toLowerCase() + name.substring(1);
+      this.state = {};
+      this.state[stateKey] = props[stateKey];
     }
   }
 
@@ -48,6 +56,7 @@ var ReactionComponent = (function (_React$Component) {
             return returnObj;
           };
 
+          console.log('component hydrated');
           _this.setState(stateObj);
         }).catch(console.log.bind(console));
       }
@@ -80,6 +89,21 @@ var ReactionComponent = (function (_React$Component) {
           return fetcher.put.apply(fetcher, arguments);
         }
       };
+    }
+  }, {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      if (!!this.constructor.name) {
+        var _this = this;
+        var name = this.constructor.name;
+        var stateKey = name.charAt(0).toLowerCase() + name.substring(1);
+
+        if (this.state && this.state[stateKey]) {
+          Events.on('route:fetchData:finish', function() {
+            _this.hydrate(stateKey);
+          });
+        }
+      }
     }
   }]);
 

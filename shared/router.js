@@ -416,15 +416,17 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
   window.onload = function() {
     ReactRouter.run(_this.buildRoutes(), locationType, function (Handler, state) {
 
+      EventDispatcher.trigger('routes:init');
+      EventDispatcher.trigger('route:fetchData:start', state.path);
+
       if (appData && typeof appData === 'object' && appData.path === state.path) {
+
         React.render(React.createFactory(Handler)(appData), el);
       }
       else {
 
-        EventDispatcher.trigger('routes:init');
-        EventDispatcher.trigger('route:fetchData:start', state.path);
-
         fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
+          appData.path = state.path;
 
           if (!data.path) {
             data.path = state.path;
@@ -441,19 +443,16 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
         });
       }
 
-      // Change the page title
-      if (!appData.title) {
-        state.routes.forEach(function(route) {
-          if (route.title) {
-            document.title = route.title;
+      state.routes.forEach(function(route) {
+        if (route.title) {
+          document.title = route.title;
+        }
+        else if (route.handler.setTitle) {
+          if (typeof route.handler.setTitle === 'function') {
+            document.title = route.handler.setTitle(state.params, state.query);
           }
-          else if (route.handler.setTitle) {
-            if (typeof route.handler.setTitle === 'function') {
-              document.title = route.handler.setTitle(state.params, state.query);
-            }
-          }
-        });
-      }
+        }
+      });
     });
   }
 }
