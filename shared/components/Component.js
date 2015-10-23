@@ -14,8 +14,23 @@ var fetcher = require('../fetcher');
 var Events = require('../events').Dispatcher;
 
 var ReactionComponent = (function (_React$Component) {
-  function ReactionComponent(props, dataKey) {
-    var autoBind = arguments[1] === undefined ? true : arguments[1];
+  function ReactionComponent(props, shouldAutoBind, dataKey) {
+    var autoBind;
+
+    if (typeof shouldAutoBind === 'undefined') {
+      autoBind = true;
+    }
+
+    if (typeof shouldAutoBind === 'string') {
+      if (typeof dataKey === 'undefined') {
+        dataKey = shouldAutoBind;
+        autoBind = true;
+      }
+      else {
+        autoBind = !!shouldAutoBind;
+      }
+    }
+
     _classCallCheck(this, ReactionComponent);
 
     _get(Object.getPrototypeOf(ReactionComponent.prototype), 'constructor', this).call(this, props);
