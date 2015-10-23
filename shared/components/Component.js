@@ -14,7 +14,7 @@ var fetcher = require('../fetcher');
 var Events = require('../events').Dispatcher;
 
 var ReactionComponent = (function (_React$Component) {
-  function ReactionComponent(props) {
+  function ReactionComponent(props, dataKey) {
     var autoBind = arguments[1] === undefined ? true : arguments[1];
     _classCallCheck(this, ReactionComponent);
 
@@ -33,9 +33,16 @@ var ReactionComponent = (function (_React$Component) {
 
     if (!!this.constructor.name) {
       var name = this.constructor.name;
-      var stateKey = name.charAt(0).toLowerCase() + name.substring(1);
+      this.componentDataKey = name.charAt(0).toLowerCase() + name.substring(1);
+    }
+
+    if (!!dataKey) {
+      this.componentDataKey = dataKey;
+    }
+
+    if (!!this.componentDataKey) {
       this.state = {};
-      this.state[stateKey] = props[stateKey];
+      this.state[this.componentDataKey] = props[this.componentDataKey];
     }
   }
 
@@ -43,16 +50,16 @@ var ReactionComponent = (function (_React$Component) {
 
   _createClass(ReactionComponent, [{
     key: 'hydrate',
-    value: function hydrate(stateKey) {
+    value: function hydrate(dataKey) {
       var _this = this;
       var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
 
-      if (!!stateKey && typeof stateKey === 'string') {
+      if (!!dataKey && typeof dataKey === 'string') {
         return fetcher(this.props).parseAndFetch(info).then(function(res) {
 
           var stateObj = function() {
             var returnObj = {};
-            returnObj[stateKey] = res;
+            returnObj[dataKey] = res;
             return returnObj;
           };
 
@@ -92,14 +99,13 @@ var ReactionComponent = (function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      if (!!this.constructor.name) {
+      if (!!this.componentDataKey) {
         var _this = this;
-        var name = this.constructor.name;
-        var stateKey = name.charAt(0).toLowerCase() + name.substring(1);
+        var dataKey = this.componentDataKey;
 
-        if (this.state && this.state[stateKey]) {
+        if (this.state && this.state[dataKey]) {
           Events.on('route:fetchData:finish', function() {
-            _this.hydrate(stateKey);
+            _this.hydrate(dataKey);
           });
         }
       }
