@@ -392,7 +392,6 @@ ReactionRouter.prototype.addRouteDefinition = function(route) {
 }
 
 ReactionRouter.prototype.start = function(appData, locationType, el) {
-  var _this = this;
   var fetcher = ReactionFetcher(this.options);
 
   if (typeof locationType !== 'function') {
@@ -413,48 +412,46 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     }
   }
 
-  window.onload = function() {
-    ReactRouter.run(_this.buildRoutes(), locationType, function (Handler, state) {
+  ReactRouter.run(this.buildRoutes(), locationType, function (Handler, state) {
 
-      EventDispatcher.trigger('routes:init');
-      EventDispatcher.trigger('route:fetchData:start', state.path);
+    EventDispatcher.trigger('routes:init');
+    EventDispatcher.trigger('route:fetchData:start', state.path);
 
-      if (appData && typeof appData === 'object' && appData.path === state.path) {
+    if (appData && typeof appData === 'object' && appData.path === state.path) {
 
-        React.render(React.createFactory(Handler)(appData), el);
-      }
-      else {
+      React.render(React.createFactory(Handler)(appData), el);
+    }
+    else {
 
-        fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
-          appData.path = state.path;
+      fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
+        appData.path = state.path;
 
-          if (!data.path) {
-            data.path = state.path;
-          }
-          if (!data.params) {
-            data.params = state.params;
-          }
-          if (!data.query) {
-            data.query = state.query;
-          }
-
-          React.render(React.createFactory(Handler)(data), el);
-          EventDispatcher.trigger('route:fetchData:finish', state.path);
-        });
-      }
-
-      state.routes.forEach(function(route) {
-        if (route.title) {
-          document.title = route.title;
+        if (!data.path) {
+          data.path = state.path;
         }
-        else if (route.handler.setTitle) {
-          if (typeof route.handler.setTitle === 'function') {
-            document.title = route.handler.setTitle(state.params, state.query);
-          }
+        if (!data.params) {
+          data.params = state.params;
         }
+        if (!data.query) {
+          data.query = state.query;
+        }
+
+        React.render(React.createFactory(Handler)(data), el);
+        EventDispatcher.trigger('route:fetchData:finish', state.path);
       });
+    }
+
+    state.routes.forEach(function(route) {
+      if (route.title) {
+        document.title = route.title;
+      }
+      else if (route.handler.setTitle) {
+        if (typeof route.handler.setTitle === 'function') {
+          document.title = route.handler.setTitle(state.params, state.query);
+        }
+      }
     });
-  }
+  });
 }
 
 module.exports = ReactionRouter;
