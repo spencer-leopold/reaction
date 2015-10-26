@@ -115,14 +115,13 @@ BaseAdapter.prototype.buildHandler = function(options) {
             if (!replaceElement) {
               replaceElement = 'document.body';
             }
-            var o = "<script type='text/javascript'>";
-            o += "(function() {\n";
+
+            var o = "(function() {\n";
             o += "\tvar bootstrapData = "+JSON.stringify(reactionData.appData)+";\n";
             o += "\tvar appSettings = "+JSON.stringify(clientOptions)+";\n";
             o += "\tvar ReactionRouter = window.ReactionRouter = require('reaction').Router(appSettings);\n";
             o += "\tReactionRouter.start(bootstrapData, '"+locationType+"', "+replaceElement+");\n";
             o += "})();\n";
-            o += "</script>";
 
             return o;
           }
