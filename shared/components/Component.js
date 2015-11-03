@@ -14,21 +14,11 @@ var fetcher = require('../fetcher');
 var Events = require('../events').Dispatcher;
 
 var ReactionComponent = (function (_React$Component) {
-  function ReactionComponent(props, shouldAutoBind, dataKey) {
+  function ReactionComponent(props, shouldAutoBind) {
     var autoBind;
 
     if (typeof shouldAutoBind === 'undefined') {
       autoBind = true;
-    }
-
-    if (typeof shouldAutoBind === 'string') {
-      if (typeof dataKey === 'undefined') {
-        dataKey = shouldAutoBind;
-        autoBind = true;
-      }
-      else {
-        autoBind = !!shouldAutoBind;
-      }
     }
 
     _classCallCheck(this, ReactionComponent);
@@ -46,18 +36,24 @@ var ReactionComponent = (function (_React$Component) {
       }).bind(this));
     }
 
-    if (!!this.constructor.name) {
-      var name = this.constructor.name;
-      this.componentDataKey = name.charAt(0).toLowerCase() + name.substring(1);
-    }
+    this.componentDataKey = false;
 
-    if (!!dataKey) {
-      this.componentDataKey = dataKey;
+    // Set fallback value type when props[dataKey] is not set
+    var dataType = [];
+
+    if (!!this.constructor.initialData && typeof this.constructor.initialData === 'function') {
+      var initialData = this.constructor.initialData();
+      for (var key in initialData) {
+        if (initialData.hasOwnProperty(key)) {
+          dataType = initialData[key];
+          this.componentDataKey = key;
+        }
+      }
     }
 
     if (!!this.componentDataKey) {
       this.state = {};
-      this.state[this.componentDataKey] = props[this.componentDataKey];
+      this.state[this.componentDataKey] = props[this.componentDataKey] || dataType;
     }
   }
 
@@ -119,9 +115,7 @@ var ReactionComponent = (function (_React$Component) {
         var dataKey = this.componentDataKey;
 
         if (this.state && this.state[dataKey]) {
-          Events.on('route:fetchData:finish', function() {
-            _this.hydrate(dataKey);
-          });
+          _this.hydrate(dataKey);
         }
       }
     }

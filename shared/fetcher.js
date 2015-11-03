@@ -67,33 +67,11 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
   });
 };
 
-ComponentFetcher.prototype.fetchDataExec = function(info, data, name, component) {
+ComponentFetcher.prototype.fetchDataExec = function(info, data, name) {
 
   // If we're on the client, just resolve
   // and fetch after component renders.
   if (isClient) {
-    var types = [{}, [], ''];
-    var expectedValue = [];
-
-    if (component.propTypes && component.propTypes[name]) {
-      var fn = component.propTypes[name];
-
-      for (var type in types) {
-        if (types.hasOwnProperty(type)) {
-
-          var props = {};
-          props[name] = type;
-
-          try {
-            fn(props, name, component.name);
-            expectedValue = type;
-          }
-          catch (e) {}
-        }
-      }
-    }
-
-    data[name] = expectedValue;
     return Promise.resolve(data);
   }
 
@@ -138,7 +116,7 @@ ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data
     })
     .map(function(route) {
       var info = route.handler.fetchData(params, query);
-      return _this.fetchDataExec(info, data, route.name, route.handler);
+      return _this.fetchDataExec(info, data, route.name);
     })
   ).then(function() {
     return data;
@@ -160,7 +138,7 @@ ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, que
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params, query);
-          return _this.fetchDataExec(info, data, name, component);
+          return _this.fetchDataExec(info, data, name);
         })
       ).then(function() {
         return data;
@@ -187,7 +165,7 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
         .map(function(name) {
           var component = components[name];
           var info = component.fetchData(params, query);
-          return _this.fetchDataExec(info, data, name, component);
+          return _this.fetchDataExec(info, data, name);
         })
       ).then(function() {
         return data;
