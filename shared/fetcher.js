@@ -67,7 +67,36 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
   });
 };
 
-ComponentFetcher.prototype.fetchDataExec = function(info, data, name) {
+ComponentFetcher.prototype.fetchDataExec = function(info, data, name, component) {
+
+  // If we're on the client, just resolve
+  // and fetch after component renders.
+  if (isClient) {
+    var types = [{}, [], ''];
+    var expectedValue = [];
+
+    if (component.propTypes && component.propTypes[name]) {
+      var fn = component.propTypes[name];
+
+      for (var type in types) {
+        if (types.hasOwnProperty(type)) {
+
+          var props = {};
+          props[name] = type;
+
+          try {
+            fn(props, name, component.name);
+            expectedValue = type;
+          }
+          catch (e) {}
+        }
+      }
+    }
+
+    data[name] = expectedValue;
+    return Promise.resolve(data);
+  }
+
   // if info is a Promise, execute if and 
   // set data to the passed in param
   if (!!info.then && typeof info.then === 'function') {
@@ -91,10 +120,6 @@ ComponentFetcher.prototype.fetchData = function(routes, params, query) {
   var _this = this;
   var data = {};
 
-  if (isClient) {
-    return Promise.resolve(data);
-  }
-
   return Promise.all([
     _this.fetchFromRoute(routes, params, query, data),
     _this.fetchFromPrefetchRoute(routes, params, query, data),
@@ -113,7 +138,7 @@ ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data
     })
     .map(function(route) {
       var info = route.handler.fetchData(params, query);
-      return _this.fetchDataExec(info, data, route.name);
+      return _this.fetchDataExec(info, data, route.name, route.handler);
     })
   ).then(function() {
     return data;
@@ -135,7 +160,7 @@ ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, que
         .map(function(component) {
           var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params, query);
-          return _this.fetchDataExec(info, data, name);
+          return _this.fetchDataExec(info, data, name, component);
         })
       ).then(function() {
         return data;
@@ -162,7 +187,7 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
         .map(function(name) {
           var component = components[name];
           var info = component.fetchData(params, query);
-          return _this.fetchDataExec(info, data, name);
+          return _this.fetchDataExec(info, data, name, component);
         })
       ).then(function() {
         return data;
