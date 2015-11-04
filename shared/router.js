@@ -417,6 +417,8 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     EventDispatcher.trigger('routes:init');
     EventDispatcher.trigger('route:fetchData:start', state.path);
 
+    // First load or navigated back to the page with the bootstrapped data,
+    // so we don't want to fetch the data we already have
     if (appData && typeof appData === 'object' && appData.path === state.path) {
 
       React.render(React.createFactory(Handler)(appData), el);
@@ -424,7 +426,6 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     else {
 
       fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
-        appData.path = state.path;
 
         if (!data.path) {
           data.path = state.path;

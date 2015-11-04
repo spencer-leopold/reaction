@@ -62,6 +62,10 @@ var ReactionComponent = (function (_React$Component) {
   _createClass(ReactionComponent, [{
     key: 'hydrate',
     value: function hydrate(dataKey) {
+      if (!dataKey) {
+        dataKey = this.componentDataKey
+      }
+
       var _this = this;
       var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
 
@@ -111,12 +115,14 @@ var ReactionComponent = (function (_React$Component) {
     key: 'componentDidMount',
     value: function componentDidMount() {
       if (!!this.componentDataKey) {
-        var _this = this;
-        var dataKey = this.componentDataKey;
-
-        if (this.state && this.state[dataKey]) {
-          _this.hydrate(dataKey);
-        }
+        Events.on('route:fetchData:finish', this.hydrate, this);
+      }
+    }
+  }, {
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      if (!!this.componentDataKey) {
+        Events.remove('route:fetchData:finish', this.hydrate, this);
       }
     }
   }]);
