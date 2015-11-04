@@ -412,6 +412,20 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     }
   }
 
+  if (el.charAt(0) === '#') {
+    el = document.getElementById(el.replace('#', ''));
+  }
+  else if (el.charAt(0) === '.') {
+    el = document.querySelector(el.replace('.', ''));
+  }
+  else if (el.charAt(0) === '<') {
+    var els = document.getElementsByTagName(el.replace(/\<|\>/, ''));
+    el = els[0];
+  }
+  else {
+    el = document.body;
+  }
+
   ReactRouter.run(this.buildRoutes(), locationType, function (Handler, state) {
 
     EventDispatcher.trigger('routes:init');
