@@ -67,12 +67,22 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
   });
 };
 
-ComponentFetcher.prototype.fetchDataExec = function(info, data, name) {
+ComponentFetcher.prototype.fetchDataExec = function(info, data, component) {
+  var name, keys, initialData;
 
   // If we're on the client, just resolve
   // and fetch after component renders.
   if (isClient) {
     return Promise.resolve(data);
+  }
+
+  if (component.initialData && typeof component.intialData === 'function') {
+    initialData = component.initialData();
+    keys = Object.keys(initialData);
+    name = keys[0];
+  }
+  else {
+    name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
   }
 
   // if info is a Promise, execute if and 
@@ -116,7 +126,7 @@ ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data
     })
     .map(function(route) {
       var info = route.handler.fetchData(params, query);
-      return _this.fetchDataExec(info, data, route.name);
+      return _this.fetchDataExec(info, data, route.handler);
     })
   ).then(function() {
     return data;
@@ -136,9 +146,8 @@ ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, que
           return component.fetchData;
         })
         .map(function(component) {
-          var name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
           var info = component.fetchData(params, query);
-          return _this.fetchDataExec(info, data, name);
+          return _this.fetchDataExec(info, data, component);
         })
       ).then(function() {
         return data;
@@ -165,7 +174,7 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
         .map(function(name) {
           var component = components[name];
           var info = component.fetchData(params, query);
-          return _this.fetchDataExec(info, data, name);
+          return _this.fetchDataExec(info, data, component);
         })
       ).then(function() {
         return data;
