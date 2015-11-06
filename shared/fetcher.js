@@ -76,7 +76,7 @@ ComponentFetcher.prototype.fetchDataExec = function(info, data, component) {
     return Promise.resolve(data);
   }
 
-  if (component.initialData && typeof component.intialData === 'function') {
+  if (component.initialData && typeof component.initialData === 'function') {
     initialData = component.initialData();
     keys = Object.keys(initialData);
     name = keys[0];
@@ -167,12 +167,11 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
     })
     .map(function(route) {
       var components = route.handler.prefetchComponents();
-      return Promise.all(Object.keys(components)
-        .filter(function(name) {
-          return components[name].fetchData;
+      return Promise.all(components
+        .filter(function(component) {
+          return component.fetchData;
         })
-        .map(function(name) {
-          var component = components[name];
+        .map(function(component) {
           var info = component.fetchData(params, query);
           return _this.fetchDataExec(info, data, component);
         })
