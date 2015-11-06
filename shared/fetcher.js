@@ -167,12 +167,29 @@ ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params
     })
     .map(function(route) {
       var components = route.handler.prefetchComponents();
+
       return Promise.all(components
         .filter(function(component) {
           return component.fetchData;
         })
         .map(function(component) {
           var info = component.fetchData(params, query);
+
+          //
+          // WARNING: Recursion
+          // Checks if the current components has
+          // any of it's own prefetchComponents defined
+          //
+          if (component.prefetchComponents) {
+            _this.fetchDataExec(info, data, component);
+
+            var customRoute = [{
+              handler: component
+            }];
+
+            return _this.fetchFromPrefetchComponents(customRoute, params, query, data);
+          }
+
           return _this.fetchDataExec(info, data, component);
         })
       ).then(function() {
