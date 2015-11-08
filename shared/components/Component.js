@@ -14,7 +14,7 @@ var fetcher = require('../fetcher');
 var Events = require('../events').Dispatcher;
 
 var ReactionComponent = (function (_React$Component) {
-  function ReactionComponent(props, shouldAutoBind) {
+  function ReactionComponent(props, context, shouldAutoBind) {
     var autoBind;
 
     if (typeof shouldAutoBind === 'undefined') {
@@ -36,25 +36,30 @@ var ReactionComponent = (function (_React$Component) {
       }).bind(this));
     }
 
-    this.componentDataKey = false;
-
-    // Set fallback value type when props[dataKey] is not set
-    var dataType = [];
-
-    if (!!this.constructor.initialData && typeof this.constructor.initialData === 'function') {
-      var initialData = this.constructor.initialData();
-      for (var key in initialData) {
-        if (initialData.hasOwnProperty(key)) {
-          dataType = initialData[key];
-          this.componentDataKey = key;
-        }
-      }
-    }
-
-    if (!!this.componentDataKey) {
+    if (context && context.dataManager && !!this.constructor.name) {
+      var componentName = this.constructor.name;
       this.state = {};
-      this.state[this.componentDataKey] = props[this.componentDataKey] || dataType;
+      this.state.data = context.dataManager.getHandlerState(componentName) || [];
     }
+
+    // this.componentDataKey = false;
+    // // Set fallback value type when props[dataKey] is not set
+    // var dataType = [];
+    //
+    // if (!!this.constructor.initialData && typeof this.constructor.initialData === 'function') {
+    //   var initialData = this.constructor.initialData();
+    //   for (var key in initialData) {
+    //     if (initialData.hasOwnProperty(key)) {
+    //       dataType = initialData[key];
+    //       this.componentDataKey = key;
+    //     }
+    //   }
+    // }
+
+    // if (!!this.componentDataKey) {
+    //   this.state = {};
+    //   this.state[this.componentDataKey] = props[this.componentDataKey] || dataType;
+    // }
   }
 
   _inherits(ReactionComponent, _React$Component);
@@ -63,7 +68,8 @@ var ReactionComponent = (function (_React$Component) {
     key: 'hydrate',
     value: function hydrate(dataKey) {
       if (!dataKey) {
-        dataKey = this.componentDataKey
+        dataKey = 'data';
+        // dataKey = this.componentDataKey
       }
 
       var _this = this;
@@ -114,14 +120,14 @@ var ReactionComponent = (function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      if (!!this.componentDataKey) {
+      if (!!this.constructor.fetchData) {
         Events.on('route:fetchData:finish', this.hydrate, this);
       }
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      if (!!this.componentDataKey) {
+      if (!!this.constructor.fetchData) {
         Events.remove('route:fetchData:finish', this.hydrate, this);
       }
     }
@@ -131,7 +137,8 @@ var ReactionComponent = (function (_React$Component) {
 })(React.Component);
 
 ReactionComponent.contextTypes = {
-  router: React.PropTypes.func
+  router: React.PropTypes.func,
+  dataManager: React.PropTypes.func
 };
 
 module.exports = ReactionComponent;

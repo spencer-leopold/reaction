@@ -6,6 +6,7 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var ReactionFetcher = require('../../shared/fetcher');
+var DataManager = require('../../shared/components/DataManager');
 var Router = require('../../shared/router');
 var qs = require('qs2');
 var debug = require('debug')('reaction');
@@ -209,7 +210,8 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
 
           routeData.baseUrl = baseUrl;
 
-          var markup = React.renderToString(React.createFactory(Handler)(routeData));
+          // var markup = React.renderToString(React.createFactory(Handler)(routeData));
+          var markup = React.renderToString(React.createFactory(DataManager)({ handler: Handler, data: routeData }));
 
           // attach the markup and initial data to the request
           // object to be injected into layout templates

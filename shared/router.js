@@ -4,6 +4,7 @@ var ReactionRouterComponents = require('./components');
 var ReactionFetcher = require('./fetcher');
 var eventMixin = require('./events').mixin;
 var EventDispatcher = require('./events').Dispatcher;
+var DataManager = require('./components/DataManager');
 var _ = require('./lodash.custom');
 
 function ReactionRouter(options) {
@@ -435,7 +436,8 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     // so we don't want to fetch the data we already have
     if (appData && typeof appData === 'object' && appData.path === state.path) {
 
-      React.render(React.createFactory(Handler)(appData), el);
+      // React.render(React.createFactory(DataManager(Handler))(appData), el);
+      React.render(React.createFactory(DataManager)({ handler: Handler, data: appData }), el);
     }
     else {
 
@@ -451,7 +453,8 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
           data.query = state.query;
         }
 
-        React.render(React.createFactory(Handler)(data), el);
+        // React.render(React.createFactory(DataManager(Handler))(data), el);
+        React.render(React.createFactory(DataManager)({ handler: Handler, data: data }), el);
         EventDispatcher.trigger('route:fetchData:finish', state.path);
       });
     }

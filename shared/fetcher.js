@@ -76,14 +76,16 @@ ComponentFetcher.prototype.fetchDataExec = function(info, data, component) {
     return Promise.resolve(data);
   }
 
-  if (component.initialData && typeof component.initialData === 'function') {
-    initialData = component.initialData();
-    keys = Object.keys(initialData);
-    name = keys[0];
-  }
-  else {
-    name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
-  }
+  var name = component.name;
+
+  // if (component.initialData && typeof component.initialData === 'function') {
+  //   initialData = component.initialData();
+  //   keys = Object.keys(initialData);
+  //   name = keys[0];
+  // }
+  // else {
+  //   name = component.name.charAt(0).toLowerCase() + component.name.substring(1);
+  // }
 
   // if info is a Promise, execute if and 
   // set data to the passed in param
