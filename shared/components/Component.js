@@ -36,12 +36,6 @@ var ReactionComponent = (function (_React$Component) {
       }).bind(this));
     }
 
-    if (context && context.dataManager && !!this.constructor.name) {
-      var componentName = this.constructor.name;
-      this.state = {};
-      this.state.data = context.dataManager.getHandlerState(componentName) || [];
-    }
-
     // this.componentDataKey = false;
     // // Set fallback value type when props[dataKey] is not set
     // var dataType = [];
@@ -69,7 +63,6 @@ var ReactionComponent = (function (_React$Component) {
     value: function hydrate(dataKey) {
       if (!dataKey) {
         dataKey = 'data';
-        // dataKey = this.componentDataKey
       }
 
       var _this = this;
@@ -118,10 +111,25 @@ var ReactionComponent = (function (_React$Component) {
       };
     }
   }, {
+    key: 'updateData',
+    value: function updateData() {
+      var _this = this;
+      var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+
+      return fetcher(this.props).parseAndFetch(info).then(function(res) {
+        Events.trigger('component:fetchData:finish', _this.constructor.name, res);
+      }).catch(console.log.bind(console));
+    }
+  }, {
+    key: 'getData',
+    value: function getData() {
+      return this.context.dataManager.getHandlerState(this.constructor.name);
+    }
+  }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
       if (!!this.constructor.fetchData) {
-        Events.on('route:fetchData:finish', this.hydrate, this);
+        Events.on('route:fetchData:finish', this.updateData, this);
       }
     }
   }, {

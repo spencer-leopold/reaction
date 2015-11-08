@@ -2,6 +2,7 @@
 
 var React = require('react');
 var ReactPropTypes = require('react').PropTypes;
+var Events = require('../events').Dispatcher;
 var state = {};
 
 var DataManager = React.createClass({
@@ -27,6 +28,21 @@ var DataManager = React.createClass({
 
   childContextTypes: {
     dataManager: ReactPropTypes.func
+  },
+
+  updateState: function updateState(evt, key, val) {
+    var stateObj = function() {
+      var returnObj = {};
+      returnObj[key] = val;
+      state[key] = val;
+      return returnObj;
+    };
+
+    this.setState(stateObj);
+  },
+
+  componentDidMount: function componentDidMount() {
+    Events.on('component:fetchData:finish', this.updateState, this);
   },
 
   getChildContext: function getChildContext() {
