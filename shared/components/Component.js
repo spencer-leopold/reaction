@@ -136,8 +136,43 @@ var ReactionComponent = (function (_React$Component) {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
       if (!!this.constructor.fetchData) {
-        Events.remove('route:fetchData:finish', this.hydrate, this);
+        Events.remove('route:fetchData:finish', this.updateData, this);
       }
+    }
+  }, {
+    key: 'compareDataState',
+    value: function compareDataState(prev, state) {
+      if (!!prev && !!state) {
+
+        for (var i = 0; i < prev.length; ++i) {
+          if (prev[i] !== state[i]) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      return true;
+    }
+  }, {
+    key: 'shouldComponentUpdate',
+    value: function shouldComponentUpdate() {
+      var prev = this.context.dataManager.getHandlerPreviousState(this.constructor.name);
+      var state = this.context.dataManager.getHandlerState(this.constructor.name);
+      var shouldUpdate = this.compareDataState(prev, state);
+
+      // Previous state matches current state,
+      // so we shouldn't update
+      if (!shouldUpdate) {
+        return false;
+      }
+
+      // Previous state is different than current state,
+      // so update previous state to match current state
+      // and update component
+      this.context.dataManager.updateHandlerState(this.constructor.name, state);
+      return true;
     }
   }]);
 
