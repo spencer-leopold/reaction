@@ -145,6 +145,12 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
   var path;
   var fetcher = ReactionFetcher(options);
   var clientRoutes = routes;
+
+  //
+  // need a router instance to use the static "match" method
+  //
+  var localRouter = ReactRouter.create({ routes: routes });
+
   // var errorHandler = this.errorHandler();
 
   return new Promise(function(resolve, reject) {
@@ -176,6 +182,10 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
     }
 
     ReactRouter.run(clientRoutes, path, function(Handler, state) {
+      if (!localRouter.match(path)) {
+        return resolve();
+      }
+
       var isNotFound = state.routes.some(function(route) {
         return route.isNotFound;
       });
