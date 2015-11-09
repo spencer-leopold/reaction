@@ -432,41 +432,26 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     EventDispatcher.trigger('routes:init');
     EventDispatcher.trigger('route:fetchData:start', state.path);
 
+    //
     // Need 0 timeout to prevent race condition between Router and Fetcher.
-    // Current Params on the router isn't set in time for the first page change
+    // Current Params on the router isn't set in time for the first page load
     // so all data gets behind by a route
+    //
     setTimeout(function() {
+
+      if (!appData.path) {
+        appData.path = state.path;
+      }
+      if (!appData.params) {
+        appData.params = state.params;
+      }
+      if (!appData.query) {
+        appData.query = state.query;
+      }
+
       React.render(React.createFactory(DataManager)({ handler: Handler, data: appData }), el);
       EventDispatcher.trigger('route:fetchData:finish', state.path);
     }, 0);
-
-    // First load or navigated back to the page with the bootstrapped data,
-    // so we don't want to fetch the data we already have
-    // if (appData && typeof appData === 'object' && appData.path === state.path) {
-    //
-    //   // React.render(React.createFactory(DataManager(Handler))(appData), el);
-    //   React.render(React.createFactory(DataManager)({ handler: Handler, data: appData }), el);
-    //   EventDispatcher.trigger('route:fetchData:finish', state.path);
-    // }
-    // else {
-    //
-    //   fetcher.fetchData(state.routes, state.params, state.query).then(function(data) {
-    //
-    //     if (!data.path) {
-    //       data.path = state.path;
-    //     }
-    //     if (!data.params) {
-    //       data.params = state.params;
-    //     }
-    //     if (!data.query) {
-    //       data.query = state.query;
-    //     }
-    //
-    //     // React.render(React.createFactory(DataManager(Handler))(data), el);
-    //     React.render(React.createFactory(DataManager)({ handler: Handler, data: data }), el);
-    //     EventDispatcher.trigger('route:fetchData:finish', state.path);
-    //   });
-    // }
 
     state.routes.forEach(function(route) {
       if (route.title) {

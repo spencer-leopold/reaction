@@ -20,27 +20,38 @@ var DataManager = React.createClass({
       return previousState;
     },
 
-    updateHandlerState: function updateHandlerState(name, data) {
+    setComponentState: function setComponentState(name, data) {
       previousState[name] = state[name];
       state[name] = data;
       return state;
     },
 
-    getHandlerState: function getHandlerState(name) {
+    getComponentState: function getComponentState(name) {
       return state[name];
     },
 
-    getHandlerPreviousState: function getHandlerPreviousState(name) {
+    getComponentPreviousState: function getComponentPreviousState(name) {
       return previousState[name];
     }
 
   },
 
   getInitialState: function getInitialState() {
+    //
+    // Set state inside and outside react
+    // so we can access it from static methods
+    // passed through context.
+    //
     return state = this.props.data;
   },
 
   updateState: function updateState(evt, key, val) {
+    //
+    // Prevents unnecessary state updates.
+    // Only update if key isn't set or
+    // current value does not equal
+    // next value.
+    //
     if (!state[key] || state[key] !== val) {
       previousState[key] = state[key];
 

@@ -68,11 +68,20 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
 };
 
 ComponentFetcher.prototype.fetchDataExec = function(info, data, component) {
-  var name = component.name;
+  var name, returnObj, force = false;
+
+  if (typeof data !== 'undefined') {
+    name = component.name;
+  }
+  else {
+    name = '__fetcher__';
+    data = {};
+    force = true;
+  }
 
   // If we're on the client, just resolve
   // and fetch after component renders.
-  if (isClient) {
+  if (!force && isClient) {
     return Promise.resolve(data);
   }
 

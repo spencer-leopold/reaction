@@ -69,7 +69,7 @@ var ReactionComponent = (function (_React$Component) {
       var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
 
       if (!!dataKey && typeof dataKey === 'string') {
-        return fetcher(this.props).parseAndFetch(info).then(function(res) {
+        return fetcher(this.props).fetchDataExec(info).then(function(res) {
 
           var stateObj = function() {
             var returnObj = {};
@@ -81,7 +81,7 @@ var ReactionComponent = (function (_React$Component) {
         }).catch(console.log.bind(console));
       }
 
-      return fetcher(this.props).parseAndFetch(info);
+      return fetcher(this.props).fetchDataExec(info);
     }
   }, {
     key: 'fetcher',
@@ -116,14 +116,21 @@ var ReactionComponent = (function (_React$Component) {
       var _this = this;
       var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
 
-      return fetcher(this.props).parseAndFetch(info).then(function(res) {
+      return fetcher(this.props).fetchDataExec(info).then(function(res) {
         Events.trigger('component:fetchData:finish', _this.constructor.name, res);
       }).catch(console.log.bind(console));
     }
   }, {
     key: 'getData',
-    value: function getData() {
-      return this.context.dataManager.getHandlerState(this.constructor.name);
+    value: function getData(componentName) {
+      //
+      // default to current component
+      //
+      if (!componentName) {
+        componentName = this.constructor.name;
+      }
+
+      return this.context.dataManager.getComponentState(componentName);
     }
   }, {
     key: 'componentDidMount',
@@ -140,8 +147,8 @@ var ReactionComponent = (function (_React$Component) {
       }
     }
   }, {
-    key: 'compareDataState',
-    value: function compareDataState(prev, state) {
+    key: 'compareState',
+    value: function compareState(prev, state) {
       if (!!prev && !!state) {
 
         for (var i = 0; i < prev.length; ++i) {
@@ -158,9 +165,9 @@ var ReactionComponent = (function (_React$Component) {
   }, {
     key: 'shouldComponentUpdate',
     value: function shouldComponentUpdate() {
-      var prev = this.context.dataManager.getHandlerPreviousState(this.constructor.name);
-      var state = this.context.dataManager.getHandlerState(this.constructor.name);
-      var shouldUpdate = this.compareDataState(prev, state);
+      var prev = this.context.dataManager.getComponentPreviousState(this.constructor.name);
+      var state = this.context.dataManager.getComponentState(this.constructor.name);
+      var shouldUpdate = this.compareState(prev, state);
 
       // Previous state matches current state,
       // so we shouldn't update
@@ -171,7 +178,7 @@ var ReactionComponent = (function (_React$Component) {
       // Previous state is different than current state,
       // so update previous state to match current state
       // and update component
-      this.context.dataManager.updateHandlerState(this.constructor.name, state);
+      this.context.dataManager.setComponentState(this.constructor.name, state);
       return true;
     }
   }]);
