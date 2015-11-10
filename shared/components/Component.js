@@ -25,6 +25,10 @@ var ReactionComponent = (function (_React$Component) {
 
     _get(Object.getPrototypeOf(ReactionComponent.prototype), 'constructor', this).call(this, props);
 
+    //
+    // Autobind class methods so you don't have to
+    // bind 'this' whenever you put callbacks in props
+    //
     if (autoBind) {
       var proto = this.constructor.prototype;
       var methods = Object.getOwnPropertyNames(proto).filter(function(method) {
@@ -61,11 +65,19 @@ var ReactionComponent = (function (_React$Component) {
   _createClass(ReactionComponent, [{
     key: 'hydrate',
     value: function hydrate(dataKey) {
+      var _this = this;
+
+      //
+      // default state key
+      //
       if (!dataKey) {
         dataKey = 'data';
       }
 
-      var _this = this;
+      if (!this.constructor.fetchData || typeof this.constructor.fetchData !== 'function') {
+        throw new Error('`hydrate` called on component without a fetchData method');
+      }
+
       var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
 
       if (!!dataKey && typeof dataKey === 'string') {
@@ -112,13 +124,27 @@ var ReactionComponent = (function (_React$Component) {
     }
   }, {
     key: 'updateData',
-    value: function updateData() {
-      var _this = this;
-      var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+    value: function updateData(componentName, data) {
+      //
+      // default to current component
+      //
+      if (!componentName) {
+        componentName = this.constructor.name;
+      }
 
-      return fetcher(this.props).fetchDataExec(info).then(function(res) {
-        Events.trigger('component:fetchData:finish', _this.constructor.name, res);
-      }).catch(console.log.bind(console));
+      if (!data && !!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
+        var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+
+        return fetcher(this.props).fetchDataExec(info).then(function(res) {
+          Events.trigger('component:fetchData:finish', componentName, res);
+        }).catch(console.log.bind(console));
+      }
+
+      //
+      // If data is passed in, just update the component with that instead
+      // of trying to call fetchData
+      //
+      Events.trigger('component:fetchData:finish', componentName, data);
     }
   }, {
     key: 'getData',
@@ -135,14 +161,20 @@ var ReactionComponent = (function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      if (!!this.constructor.fetchData) {
+      //
+      // Attach event listener for this component
+      //
+      if (!!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
         Events.on('route:fetchData:finish', this.updateData, this);
       }
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      if (!!this.constructor.fetchData) {
+      //
+      // Remove event listener for this component
+      //
+      if (!!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
         Events.remove('route:fetchData:finish', this.updateData, this);
       }
     }
@@ -153,13 +185,13 @@ var ReactionComponent = (function (_React$Component) {
 
         for (var i = 0; i < prev.length; ++i) {
           if (prev[i] !== state[i]) {
+            // states don't match
             return true;
           }
         }
-
-        return false;
       }
 
+      // states don't match
       return true;
     }
   }, {
@@ -169,15 +201,19 @@ var ReactionComponent = (function (_React$Component) {
       var state = this.context.dataManager.getComponentState(this.constructor.name);
       var shouldUpdate = this.compareState(prev, state);
 
+      //
       // Previous state matches current state,
       // so we shouldn't update
+      //
       if (!shouldUpdate) {
         return false;
       }
 
-      // Previous state is different than current state,
-      // so update previous state to match current state
-      // and update component
+      //
+      // Previous state is different than current state.
+      // Component should update and we set the previous state
+      // to the current state.
+      //
       this.context.dataManager.setComponentState(this.constructor.name, state);
       return true;
     }
