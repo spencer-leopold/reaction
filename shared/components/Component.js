@@ -63,39 +63,39 @@ var ReactionComponent = (function (_React$Component) {
   _inherits(ReactionComponent, _React$Component);
 
   _createClass(ReactionComponent, [{
-    key: 'hydrate',
-    value: function hydrate(dataKey) {
-      var _this = this;
-
-      //
-      // default state key
-      //
-      if (!dataKey) {
-        dataKey = 'data';
-      }
-
-      if (!this.constructor.fetchData || typeof this.constructor.fetchData !== 'function') {
-        throw new Error('`hydrate` called on component without a fetchData method');
-      }
-
-      var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
-
-      if (!!dataKey && typeof dataKey === 'string') {
-        return fetcher(this.props).fetchDataExec(info).then(function(res) {
-
-          var stateObj = function() {
-            var returnObj = {};
-            returnObj[dataKey] = res;
-            return returnObj;
-          };
-
-          _this.setState(stateObj);
-        }).catch(console.log.bind(console));
-      }
-
-      return fetcher(this.props).fetchDataExec(info);
-    }
-  }, {
+  //   key: 'hydrate',
+  //   value: function hydrate(dataKey) {
+  //     var _this = this;
+  //
+  //     //
+  //     // default state key
+  //     //
+  //     if (!dataKey) {
+  //       dataKey = 'data';
+  //     }
+  //
+  //     if (!this.constructor.fetchData || typeof this.constructor.fetchData !== 'function') {
+  //       throw new Error('`hydrate` called on component without a fetchData method');
+  //     }
+  //
+  //     var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+  //
+  //     if (!!dataKey && typeof dataKey === 'string') {
+  //       return fetcher(this.props).fetchDataExec(info).then(function(res) {
+  //
+  //         var stateObj = function() {
+  //           var returnObj = {};
+  //           returnObj[dataKey] = res;
+  //           return returnObj;
+  //         };
+  //
+  //         _this.setState(stateObj);
+  //       }).catch(console.log.bind(console));
+  //     }
+  //
+  //     return fetcher(this.props).fetchDataExec(info);
+  //   }
+  // }, {
     key: 'fetcher',
     get: function () {
       return {
@@ -123,8 +123,8 @@ var ReactionComponent = (function (_React$Component) {
       };
     }
   }, {
-    key: 'updateData',
-    value: function updateData(componentName, data, appendData) {
+    key: 'hydrate',
+    value: function hydrate(componentName, data, appendData) {
       var additionalProps = {};
 
       if (typeof componentName !== 'string' && typeof data === 'boolean') {
@@ -181,7 +181,7 @@ var ReactionComponent = (function (_React$Component) {
       // Attach event listener for this component
       //
       if (!!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
-        Events.on('route:fetchData:finish', this.updateData, this);
+        Events.on('route:fetchData:finish', this.hydrate, this);
       }
     }
   }, {
@@ -191,7 +191,7 @@ var ReactionComponent = (function (_React$Component) {
       // Remove event listener for this component
       //
       if (!!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
-        Events.remove('route:fetchData:finish', this.updateData, this);
+        Events.remove('route:fetchData:finish', this.hydrate, this);
       }
     }
   }, {
@@ -212,9 +212,13 @@ var ReactionComponent = (function (_React$Component) {
     }
   }, {
     key: 'shouldComponentUpdate',
-    value: function shouldComponentUpdate() {
-      var prev = this.context.dataManager.getComponentPreviousState(this.constructor.name);
-      var state = this.context.dataManager.getComponentState(this.constructor.name);
+    value: function shouldComponentUpdate(componentName) {
+      if (typeof componentName !== 'string') {
+        componentName = this.constructor.name;
+      }
+
+      var prev = this.context.dataManager.getComponentPreviousState(componentName);
+      var state = this.context.dataManager.getComponentState(componentName);
       var shouldUpdate = this.compareState(prev, state);
 
       //
@@ -230,7 +234,7 @@ var ReactionComponent = (function (_React$Component) {
       // Component should update and we set the previous state
       // to the current state.
       //
-      this.context.dataManager.setComponentState(this.constructor.name, state);
+      this.context.dataManager.setComponentState(componentName, state);
       return true;
     }
   }]);
