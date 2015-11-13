@@ -399,18 +399,22 @@ fetcher.api = function(api) {
   return this;
 }
 
-fetcher.get = function(url, headers, cache) {
+fetcher.get = function(url, data, headers, cache) {
   var f = fetcher();
   url = f.formatUrl(url);
   this._api = 'default';
 
+  data = data || {};
   headers = headers || {};
 
-  if (typeof headers === 'boolean') {
-    return f.handleRequest('get', url, {}, {}, headers);
+  if (typeof data === 'boolean') {
+    return f.handleRequest('get', url, {}, {}, data);
+  }
+  else if (typeof headers === 'boolean') {
+    return f.handleRequest('get', url, data, {}, headers);
   }
 
-  return f.handleRequest('get', url, {}, headers, cache);
+  return f.handleRequest('get', url, data, headers, cache);
 }
 
 fetcher.del = function(url, headers) {

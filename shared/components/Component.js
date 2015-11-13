@@ -124,19 +124,35 @@ var ReactionComponent = (function (_React$Component) {
     }
   }, {
     key: 'updateData',
-    value: function updateData(componentName, data) {
+    value: function updateData(componentName, data, appendData) {
+      var additionalProps = {};
+
+      if (typeof componentName !== 'string' && typeof data === 'boolean') {
+        appendData = data;
+      }
+      else {
+        appendData = typeof appendData === 'undefined' ? false : appendData;
+      }
+
+      if (typeof componentName === 'object') {
+        additionalProps = componentName
+      }
+
       //
       // default to current component
+      // componentName can also be an object
+      // of additional props to pass to fetchData
       //
-      if (!componentName) {
+      if (!componentName || typeof componentName === 'object') {
         componentName = this.constructor.name;
       }
 
-      if (!data && !!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
-        var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
+      if (typeof data !== 'object' && !!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
+        var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery(), additionalProps);
 
         return fetcher(this.props).fetchDataExec(info).then(function(res) {
-          Events.trigger('component:fetchData:finish', componentName, res);
+
+          Events.trigger('component:fetchData:finish', componentName, res, appendData);
         }).catch(console.log.bind(console));
       }
 

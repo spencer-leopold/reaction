@@ -6,6 +6,16 @@ var Events = require('../events').Dispatcher;
 var state = {};
 var previousState = {};
 
+function isEmpty(obj) {
+  for (var prop in obj) {
+    if (obj.hasOwnProperty(prop)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 var DataManager = React.createClass({
 
   displayName: 'DataManager',
@@ -27,11 +37,13 @@ var DataManager = React.createClass({
     },
 
     getComponentState: function getComponentState(name) {
-      return state[name];
+      var data = state[name];
+      return isEmpty(data) ? false : data;
     },
 
     getComponentPreviousState: function getComponentPreviousState(name) {
-      return previousState[name];
+      var data = previousState[name];
+      return isEmpty(data) ? false : data;
     }
 
   },
@@ -45,7 +57,7 @@ var DataManager = React.createClass({
     return state = this.props.data;
   },
 
-  updateState: function updateState(evt, key, val) {
+  updateState: function updateState(evt, key, val, append) {
     //
     // Prevents unnecessary state updates.
     // Only update if key isn't set or
@@ -57,8 +69,15 @@ var DataManager = React.createClass({
 
       var stateObj = function() {
         var returnObj = {};
-        returnObj[key] = val;
-        state[key] = val;
+
+        if (!!append && !!state[key]) {
+          state[key] = state[key].concat(val);
+        }
+        else {
+          state[key] = val;
+        }
+
+        returnObj[key] = state[key];
         return returnObj;
       };
 
