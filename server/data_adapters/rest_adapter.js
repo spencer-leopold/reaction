@@ -99,6 +99,7 @@ RestAdapter.prototype.processUrl = function(req) {
   }
 
   if (!!apiConfig) {
+    var apiPrefix = '';
     var protocol = '';
     var port = '';
     var host = '';
