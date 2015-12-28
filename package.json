@@ -1,6 +1,6 @@
 {
   "name": "reaction",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Reaction is an isomorphic library using React and Hapi",
   "main": "index.js",
   "scripts": {
