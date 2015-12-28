@@ -441,7 +441,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     el = document.getElementById(el.replace('#', ''));
   }
   else if (el.charAt(0) === '.') {
-    el = document.querySelector(el.replace('.', ''));
+    el = document.querySelector(el);
   }
   else if (el.charAt(0) === '<') {
     var els = document.getElementsByTagName(el.replace(/\<|\>/, ''));

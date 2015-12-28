@@ -80,3 +80,38 @@ exports.attachApp = function(options, server) {
 
   return new ServerAdapter(options, server);
 }
+
+//
+// Startup for frontend
+//
+exports.initApp = function(props, el) {
+  if (!el) {
+    el = '.react-app';
+  }
+
+  var wrapperAttrs = {
+    dangerouslySetInnerHTML: {
+      __html: props.body
+    }
+  };
+
+  if (el.charAt(0) === '#') {
+    wrapperAttrs.id = el.replace('#', '');
+  }
+  else if (el.charAt(0) === '.') {
+    wrapperAttrs.className = el.replace('.', '');
+  }
+  else {
+    throw new Error('el must be a class or id selector')
+  }
+
+  var wrapper = React.createElement('div', wrapperAttrs);
+
+  var script = React.createElement('script', {
+    dangerouslySetInnerHTML: {
+      __html: props.start(el)
+    }
+  });
+
+  return React.createElement('div', { id: el.substr(1) + '-wrapper' }, wrapper, script);
+}
