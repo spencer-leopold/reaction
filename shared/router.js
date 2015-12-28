@@ -214,13 +214,29 @@ ReactionRouter.prototype.iterateComponentRoutes = function(parentRoute, childRou
 
 ReactionRouter.prototype.buildComponentRoutes = function(childRoutes, parentRoute) {
   if (childRoutes.type) {
-    var childRoute = childRoutes._store.props;
+    var childRoute;
+
+    if (!!childRoutes._store) {
+      childRoute = childRoutes._store.props;
+    }
+    else {
+      childRoute = childRoutes.props;
+    }
+
     var childRouteType = childRoutes.type.name;
     this.iterateComponentRoutes(parentRoute, childRoute, childRouteType);
   }
   else {
     _.forEach(Object.keys(childRoutes), function(idx) {
-      var childRoute = childRoutes[idx]._store.props;
+      var childRoute;
+
+      if (!!childRoutes[idx]._store) {
+        childRoute = childRoutes[idx]._store.props;
+      }
+      else {
+        childRoute = childRoutes[idx].props;
+      }
+
       var childRouteType = childRoutes[idx].type.name;
       this.iterateComponentRoutes(parentRoute, childRoute, childRouteType);
     }.bind(this));
@@ -234,7 +250,15 @@ ReactionRouter.prototype.parseRoutes = function(routes) {
     return false;
   }
 
-  var parentRoute = routes._store.props;
+  var parentRoute;
+
+  if (!!routes._store) {
+    parentRoute = routes._store.props;
+  }
+  else {
+    parentRoute = routes.props;
+  }
+
   var childRoutes = false;
 
   if (parentRoute.children) {
