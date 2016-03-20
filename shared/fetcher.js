@@ -32,13 +32,14 @@ ComponentFetcher.prototype.parseAndFetch = function(info) {
 
   var data = info.data || {};
   var headers = info.headers || {};
+  var dataType = info.dataType || 'json';
   var cache = (typeof info.cache === 'undefined') ? true : info.cache;
 
   if (!!info.api) {
     headers.api = info.api;
   }
 
-  return this.handleRequest(method, url, data, headers, cache);
+  return this.handleRequest(method, url, dataType, data, headers, cache);
 }
 
 ComponentFetcher.prototype.thunkCallback = function(resolve, reject) {
@@ -307,13 +308,14 @@ ComponentFetcher.prototype.formatUrl = function(url) {
   return url;
 }
 
-ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, cacheResponse) {
+ComponentFetcher.prototype.handleRequest = function(method, url, dataType, data, headers, cacheResponse) {
   var method = method.toLowerCase();
   var allHeaders = { api: this.getApi() };
   var ttlSec = 900;
   var paramValue, cacheUrl;
 
   cacheUrl = url = this.replaceSegments(url, data);
+  console.log(headers);
 
   // if sending params, add them to the cacheUrl
   if (method === 'get' && data && typeof data === 'object') {
@@ -359,7 +361,14 @@ ComponentFetcher.prototype.handleRequest = function(method, url, data, headers, 
         reject(new Error('404 not found'));
       }
       else {
-        var body = res.body;
+        var body;
+
+        if (dataType === 'html') {
+          body = res.text;
+        }
+        else {
+          body = res.body;
+        }
 
         if (method === 'get' && !!cacheResponse) {
           // Allow changing of cache limit
@@ -393,7 +402,7 @@ fetcher.api = function(api) {
   return this;
 }
 
-fetcher.get = function(url, data, headers, cache) {
+fetcher.get = function(url, data, dataType, headers, cache) {
   var f = fetcher();
   url = f.formatUrl(url);
   this._api = 'default';
@@ -402,13 +411,13 @@ fetcher.get = function(url, data, headers, cache) {
   headers = headers || {};
 
   if (typeof data === 'boolean') {
-    return f.handleRequest('get', url, {}, {}, data);
+    return f.handleRequest('get', url, dataType, {}, {}, data);
   }
   else if (typeof headers === 'boolean') {
-    return f.handleRequest('get', url, data, {}, headers);
+    return f.handleRequest('get', url, dataType, data, {}, headers);
   }
 
-  return f.handleRequest('get', url, data, headers, cache);
+  return f.handleRequest('get', url, dataType, data, headers, cache);
 }
 
 fetcher.del = function(url, headers) {
@@ -418,7 +427,7 @@ fetcher.del = function(url, headers) {
 
   headers = headers || {};
 
-  return f.handleRequest('del', url, {}, headers);
+  return f.handleRequest('del', url, null, {}, headers);
 }
 
 
@@ -429,7 +438,7 @@ fetcher.head = function(url, data, headers) {
 
   headers = headers || {};
 
-  return f.handleRequest('head', url, data, headers);
+  return f.handleRequest('head', url, null, data, headers);
 }
 
 fetcher.patch = function(url, data, headers) {
@@ -439,27 +448,27 @@ fetcher.patch = function(url, data, headers) {
 
   headers = headers || {};
 
-  return f.handleRequest('patch', url, data, headers);
+  return f.handleRequest('patch', url, null, data, headers);
 }
 
-fetcher.post = function(url, data, headers) {
+fetcher.post = function(url, data, dataType, headers) {
   var f = fetcher();
   url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
 
-  return f.handleRequest('post', url, data, headers);
+  return f.handleRequest('post', url, dataType, data, headers);
 }
 
-fetcher.put = function(url, data, headers) {
+fetcher.put = function(url, data, dataType, headers) {
   var f = fetcher();
   url = f.formatUrl(url);
   this._api = 'default';
 
   headers = headers || {};
 
-  return f.handleRequest('put', url, data, headers);
+  return f.handleRequest('put', url, dataType, data, headers);
 }
 
 module.exports = fetcher;
