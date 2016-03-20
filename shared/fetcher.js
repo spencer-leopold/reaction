@@ -110,6 +110,7 @@ ComponentFetcher.prototype.fetchData = function(routes, params, query) {
 
 ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data) {
   var _this = this;
+  routes = routes || [];
 
   return Promise.all(routes
     .filter(function(route) {
@@ -126,6 +127,7 @@ ComponentFetcher.prototype.fetchFromRoute = function(routes, params, query, data
 
 ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, query, data) {
   var _this = this;
+  routes = routes || [];
 
   return Promise.all(routes
     .filter(function(route) {
@@ -151,13 +153,14 @@ ComponentFetcher.prototype.fetchFromPrefetchRoute = function(routes, params, que
 
 ComponentFetcher.prototype.fetchFromPrefetchComponents = function(routes, params, query, data) {
   var _this = this;
+  routes = routes || [];
 
   return Promise.all(routes
     .filter(function(route) {
       return route.handler.prefetchComponents;
     })
     .map(function(route) {
-      var components = route.handler.prefetchComponents();
+      var components = route.handler.prefetchComponents() || [];
 
       return Promise.all(components
         .filter(function(component) {

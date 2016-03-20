@@ -28,11 +28,11 @@ RestAdapter.prototype.request = function(req, callback) {
 
   var start = new Date().getTime(), end;
   request(api, function (err, response, body) {
-    var contentType = response.headers['content-type'] || '';
-
     if (err) {
       return callback(null, err);
     }
+
+    var contentType = response.headers['content-type'] || '';
 
     if (typeof body === 'string' && ~contentType.indexOf('application/json')) {
       try {
