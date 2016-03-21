@@ -363,6 +363,13 @@ ComponentFetcher.prototype.handleRequest = function(method, url, dataType, data,
       allHeaders = _.assign({}, allHeaders, headers);
     }
 
+    // If request is not to proxy api,
+    // remove the "api" header to prevent
+    // request failures.
+    if (url.indexOf('\/\-\/') === -1) {
+      delete allHeaders.api;
+    }
+
     request.set(allHeaders);
 
     request.end(function(err, res) {
