@@ -152,7 +152,9 @@ var ReactionComponent = (function (_React$Component) {
 
         return fetcher(this.props).fetchDataExec(info).then(function(res) {
 
-          Events.trigger('component:fetchData:finish', componentName, res, appendData);
+          if (res) {
+            Events.trigger('component:fetchData:finish', componentName, res, appendData);
+          }
         }).catch(console.log.bind(console));
       }
 
