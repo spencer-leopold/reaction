@@ -243,6 +243,12 @@ ComponentFetcher.prototype.replaceSegments = function(url, data) {
 
   if (matches && matches.length) {
     matches.forEach(function(match) {
+      // Make sure match is an
+      // actual segment.
+      if (match === ':') {
+        return;
+      }
+
       var matchKey = match.replace(':', '');
 
       if (~url.indexOf(match)) {
@@ -252,7 +258,12 @@ ComponentFetcher.prototype.replaceSegments = function(url, data) {
     });
   }
 
-  return baseUrl + url;
+  // Append baseUrl if relative path.
+  if (url.indexOf('://') === -1) {
+    url = baseUrl + url;
+  }
+
+  return url;
 }
 
 ComponentFetcher.prototype.formatUrl = function(url) {
@@ -315,7 +326,6 @@ ComponentFetcher.prototype.handleRequest = function(method, url, dataType, data,
   var paramValue, cacheUrl;
 
   cacheUrl = url = this.replaceSegments(url, data);
-  console.log(headers);
 
   // if sending params, add them to the cacheUrl
   if (method === 'get' && data && typeof data === 'object') {
