@@ -1,3 +1,6 @@
+//
+// @todo: Add support for data parsers.
+//
 var Promise = require('when');
 var Request = require('superagent');
 var MemoryStore = require('./memory_store');
