@@ -1,5 +1,8 @@
 //
-// @TODO: Need a better way to match routes
+// @todo: Need a way to add middleware that adds
+// onto reactionData object.
+//
+// @todo: Need a better way to match routes
 // (or at least use React-Routers match functionality)
 //
 
@@ -13,7 +16,7 @@ var debug = require('debug')('reaction');
 var _ = require('../../shared/lodash.custom');
 
 function BaseAdapter(options, server) {
-  // @TODO: Add some error checking for options
+  // @todo: Add some error checking for options
   this.options = options || {};
   this.server = server;
   this.serverRoutes = [];
@@ -82,15 +85,17 @@ BaseAdapter.prototype.buildHandler = function(options) {
   clientOptions.paths.componentsDir = clientOptions.paths.componentsDir.replace(entryPath, '');
   clientOptions.paths.templatesDir = clientOptions.paths.templatesDir.replace(entryPath, '');
 
-  if (options.handle) {
-    if (typeof options.handle !== 'function') {
+  if (options.handle || options.handler.handleRequest) {
+    var handleRequest = options.handle || options.handler.handleRequest;
+
+    if (typeof handleRequest !== 'function') {
       throw new Error('Route handle must be a function');
     }
     else {
       handler = function(request, response, next) {
         renderReactApp(request, appOptions, routes).then(function(data) {
           request.reactionData = data;
-          options.handle(request, response, next);
+          handleRequest(request, response, next);
         }).catch(function(e) {
           console.log(e);
         });
@@ -154,14 +159,6 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
   // var errorHandler = this.errorHandler();
 
   return new Promise(function(resolve, reject) {
-
-    if (typeof req.url === 'string') {
-      path = req.url;
-    }
-    else {
-      path = req.url.path;
-    }
-
     var baseUrl = options.baseUrl || false;
 
     if (!baseUrl) {
@@ -177,11 +174,23 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
 
     fetcher.setBaseUrl(baseUrl);
 
+    // Some servers use a url object to
+    // define each part of the url.
+    if (typeof req.url === 'string') {
+      path = req.url;
+    }
+    else {
+      path = req.url.path;
+    }
+
+    // Append query string to path.
     if (req.query && !_.isEmpty(req.query) && path.indexOf('?') === -1) {
       path += '?' + qs.stringify(req.query);
     }
 
     ReactRouter.run(clientRoutes, path, function(Handler, state) {
+      // If path doesn't match a defined route,
+      // skip over it.
       if (!localRouter.match(path)) {
         return resolve();
       }
@@ -196,43 +205,42 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
           appData: {} 
         };
 
-        resolve(data);
+        return resolve(data);
       }
-      else {
-        fetcher.fetchData(state.routes, state.params, state.query).then(function(routeData) {
 
-          // Check for a page title
-          state.routes.forEach(function(route) {
-            if (route.title) {
-              routeData.title = route.title;
-            }
-          });
+      fetcher.fetchData(state.routes, state.params, state.query).then(function(routeData) {
 
-          if (!routeData.path) {
-            routeData.path = path;
+        // Check for a page title
+        state.routes.forEach(function(route) {
+          if (route.title) {
+            routeData.title = route.title;
           }
-          if (!routeData.params) {
-            routeData.params = state.params;
-          }
-          if (!routeData.query) {
-            routeData.query = state.query;
-          }
-
-          routeData.baseUrl = baseUrl;
-
-          // var markup = React.renderToString(React.createFactory(Handler)(routeData));
-          var markup = React.renderToString(React.createFactory(DataManager)({ handler: Handler, data: routeData }));
-
-          // attach the markup and initial data to the request
-          // object to be injected into layout templates
-          var data = {
-            body: markup,
-            appData: routeData 
-          };
-
-          resolve(data);
         });
-      }
+
+        if (!routeData.path) {
+          routeData.path = path;
+        }
+        if (!routeData.params) {
+          routeData.params = state.params;
+        }
+        if (!routeData.query) {
+          routeData.query = state.query;
+        }
+
+        routeData.baseUrl = baseUrl;
+
+        // var markup = React.renderToString(React.createFactory(Handler)(routeData));
+        var markup = React.renderToString(React.createFactory(DataManager)({ handler: Handler, data: routeData }));
+
+        // Attach the markup and initial data to the request
+        // object so it can be injected into layout templates.
+        var data = {
+          body: markup,
+          appData: routeData 
+        };
+
+        resolve(data);
+      });
     });
   });
 }
@@ -275,7 +283,7 @@ BaseAdapter.prototype.onRoutesFinished = function() {
 }
 
 /**
- * Implement these methods in child class
+ * Implement these methods in child class.
  */
 BaseAdapter.prototype.addRoute = function(route, handler) {
   throw new Error('`addRoute` needs to be implemented');
@@ -301,16 +309,16 @@ BaseAdapter.prototype.attachErrorHandler = function(renderTemplateCb) {
   throw new Error('`attachErrorHandler` needs to be implemented');
 }
 
+BaseAdapter.prototype.attachApiProxy = function(options) {
+  throw new Error('`attachApiProxy` needs to be implemented');
+}
+
 // Most servers use a similar route convention so we shouldn't
 // require `formatParams` to be implemented, instead by default
 // we just return the path so that it can be overridden for cases
-// like when using Hapi
+// like when using Hapi.
 BaseAdapter.prototype.formatParams = function(path) {
   return path;
-}
-
-BaseAdapter.prototype.attachApiProxy = function(options) {
-  throw new Error('`attachApiProxy` needs to be implemented');
 }
 
 module.exports = BaseAdapter;
