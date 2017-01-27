@@ -79,6 +79,8 @@ var DataManager = React.createClass({
       return this.setState(stateObj);
     }
 
+    // @TODO: Look into performance of always updating the state and see if
+    // we need to look into any alternatives.
     this.setState({fetching: false});
   },
 
