@@ -451,6 +451,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     el = document.body;
   }
 
+  var firstRun = true;
   ReactRouter.run(this.buildRoutes(), locationType, function (Handler, state) {
 
     EventDispatcher.trigger('routes:init');
@@ -471,9 +472,13 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
         appData.query = state.query;
       }
 
-      appData.fetching = true;
+      appData.fetching = false;
+      if (!firstRun) {
+        appData.fetching = true;
+      }
       React.render(React.createFactory(DataManager)({ handler: Handler, data: appData }), el);
       EventDispatcher.trigger('route:fetchData:finish', state.path);
+      firstRun = false;
     }, 0);
 
     state.routes.forEach(function(route) {
