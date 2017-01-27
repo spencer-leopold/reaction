@@ -72,11 +72,14 @@ var DataManager = React.createClass({
         }
 
         returnObj[key] = state[key];
+        returnObj.fetching = false;
         return returnObj;
       };
 
-      this.setState(stateObj);
+      return this.setState(stateObj);
     }
+
+    this.setState({fetching: false});
   },
 
   componentDidMount: function componentDidMount() {
