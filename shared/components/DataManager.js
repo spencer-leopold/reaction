@@ -33,6 +33,7 @@ var DataManager = React.createClass({
     setComponentState: function setComponentState(name, data) {
       previousState[name] = state[name];
       state[name] = data;
+      state.fetching = false;
       return state;
     },
 
@@ -49,21 +50,14 @@ var DataManager = React.createClass({
   },
 
   getInitialState: function getInitialState() {
-    //
-    // Set state inside and outside react
-    // so we can access it from static methods
-    // passed through context.
-    //
+    // Set state inside and outside react so we can access it from static
+    // methods passed through context.
     return state = this.props.data;
   },
 
   updateState: function updateState(evt, key, val, append) {
-    //
-    // Prevents unnecessary state updates.
-    // Only update if key isn't set or
-    // current value does not equal
-    // next value.
-    //
+    // Prevents unnecessary state updates. Only update if key isn't set or
+    // current value does not equal next value.
     if (!state[key] || state[key] !== val) {
       previousState[key] = state[key];
 
@@ -110,7 +104,7 @@ var DataManager = React.createClass({
   // },
 
   render: function render() {
-    return this.props.handler ? React.createElement(this.props.handler, state) : null;
+    return this.props.handler ? React.createElement(this.props.handler, {fetching: state.fetching}) : null;
   }
 
 });

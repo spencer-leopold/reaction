@@ -456,11 +456,9 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
     EventDispatcher.trigger('routes:init');
     EventDispatcher.trigger('route:fetchData:start', state.path);
 
-    //
     // Need 0 timeout to prevent race condition between Router and Fetcher.
     // Current Params on the router isn't set in time for the first page load
     // so all data gets behind by a route
-    //
     setTimeout(function() {
 
       if (!appData.path) {
@@ -473,6 +471,7 @@ ReactionRouter.prototype.start = function(appData, locationType, el) {
         appData.query = state.query;
       }
 
+      appData.fetching = true;
       React.render(React.createFactory(DataManager)({ handler: Handler, data: appData }), el);
       EventDispatcher.trigger('route:fetchData:finish', state.path);
     }, 0);

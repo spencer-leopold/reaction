@@ -25,10 +25,8 @@ var ReactionComponent = (function (_React$Component) {
 
     _get(Object.getPrototypeOf(ReactionComponent.prototype), 'constructor', this).call(this, props);
 
-    //
-    // Autobind class methods so you don't have to
-    // bind 'this' whenever you put callbacks in props
-    //
+    // Autobind class methods so you don't have to bind 'this' whenever you put
+    // callbacks in props.
     if (autoBind) {
       var proto = this.constructor.prototype;
       var methods = Object.getOwnPropertyNames(proto).filter(function(method) {
@@ -138,11 +136,8 @@ var ReactionComponent = (function (_React$Component) {
         additionalProps = componentName
       }
 
-      //
-      // default to current component
-      // componentName can also be an object
-      // of additional props to pass to fetchData
-      //
+      // Default to current component componentName can also be an object of
+      // additional props to pass to fetchData.
       if (!componentName || typeof componentName === 'object') {
         componentName = this.constructor.name;
       }
@@ -158,18 +153,14 @@ var ReactionComponent = (function (_React$Component) {
         }).catch(console.log.bind(console));
       }
 
-      //
       // If data is passed in, just update the component with that instead
-      // of trying to call fetchData
-      //
+      // of trying to call fetchData.
       Events.trigger('component:fetchData:finish', componentName, data);
     }
   }, {
     key: 'getData',
     value: function getData(componentName) {
-      //
-      // default to current component
-      //
+      // Default to current component.
       if (!componentName) {
         componentName = this.constructor.name;
         // if (componentName === '_class' && this._reactInternalInstance && this._reactInternalInstance._rootNodeID) {
@@ -182,9 +173,7 @@ var ReactionComponent = (function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      //
-      // Attach event listener for this component
-      //
+      // Attach event listener for this component.
       if (!!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
         Events.on('route:fetchData:finish', this.hydrate, this);
       }
@@ -192,9 +181,7 @@ var ReactionComponent = (function (_React$Component) {
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
-      //
-      // Remove event listener for this component
-      //
+      // Remove event listener for this component.
       if (!!this.constructor.fetchData && typeof this.constructor.fetchData === 'function') {
         Events.remove('route:fetchData:finish', this.hydrate, this);
       }
@@ -206,13 +193,13 @@ var ReactionComponent = (function (_React$Component) {
 
         for (var i = 0; i < prev.length; ++i) {
           if (prev[i] !== state[i]) {
-            // states don't match
+            // States don't match.
             return true;
           }
         }
       }
 
-      // states don't match
+      // States don't match.
       return true;
     }
   }, {
@@ -226,19 +213,13 @@ var ReactionComponent = (function (_React$Component) {
       var state = this.context.dataManager.getComponentState(componentName);
       var shouldUpdate = this.compareState(prev, state);
 
-      //
-      // Previous state matches current state,
-      // so we shouldn't update
-      //
+      // Previous state matches current state so we shouldn't update.
       if (!shouldUpdate) {
         return false;
       }
 
-      //
-      // Previous state is different than current state.
-      // Component should update and we set the previous state
-      // to the current state.
-      //
+      // Previous state is different than current state. Component should
+      // update and we set the previous state to the current state.
       this.context.dataManager.setComponentState(componentName, state);
       return true;
     }
