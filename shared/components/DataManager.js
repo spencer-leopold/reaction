@@ -64,7 +64,7 @@ var DataManager = React.createClass({
       var stateObj = function() {
         var returnObj = {};
 
-        if (!!append && !!state[key]) {
+        if (!!append && !!state[key] && typeof state[key].length !== 'undefined') {
           state[key] = state[key].concat(val);
         }
         else {
