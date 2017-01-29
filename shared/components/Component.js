@@ -111,9 +111,6 @@ var ReactionComponent = (function (_React$Component) {
       // Default to current component.
       if (!componentName) {
         componentName = this.constructor.name;
-        // if (componentName === '_class' && this._reactInternalInstance && this._reactInternalInstance._rootNodeID) {
-        //   componentName = this._reactInternalInstance._rootNodeID;
-        // }
       }
 
       return this.context.dataManager.getComponentState(componentName);
