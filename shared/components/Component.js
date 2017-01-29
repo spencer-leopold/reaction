@@ -37,63 +37,11 @@ var ReactionComponent = (function (_React$Component) {
         this[method] = this[method].bind(this);
       }).bind(this));
     }
-
-    // this.componentDataKey = false;
-    // // Set fallback value type when props[dataKey] is not set
-    // var dataType = [];
-    //
-    // if (!!this.constructor.initialData && typeof this.constructor.initialData === 'function') {
-    //   var initialData = this.constructor.initialData();
-    //   for (var key in initialData) {
-    //     if (initialData.hasOwnProperty(key)) {
-    //       dataType = initialData[key];
-    //       this.componentDataKey = key;
-    //     }
-    //   }
-    // }
-
-    // if (!!this.componentDataKey) {
-    //   this.state = {};
-    //   this.state[this.componentDataKey] = props[this.componentDataKey] || dataType;
-    // }
   }
 
   _inherits(ReactionComponent, _React$Component);
 
   _createClass(ReactionComponent, [{
-  //   key: 'hydrate',
-  //   value: function hydrate(dataKey) {
-  //     var _this = this;
-  //
-  //     //
-  //     // default state key
-  //     //
-  //     if (!dataKey) {
-  //       dataKey = 'data';
-  //     }
-  //
-  //     if (!this.constructor.fetchData || typeof this.constructor.fetchData !== 'function') {
-  //       throw new Error('`hydrate` called on component without a fetchData method');
-  //     }
-  //
-  //     var info = this.constructor.fetchData(this.context.router.getCurrentParams(), this.context.router.getCurrentQuery());
-  //
-  //     if (!!dataKey && typeof dataKey === 'string') {
-  //       return fetcher(this.props).fetchDataExec(info).then(function(res) {
-  //
-  //         var stateObj = function() {
-  //           var returnObj = {};
-  //           returnObj[dataKey] = res;
-  //           return returnObj;
-  //         };
-  //
-  //         _this.setState(stateObj);
-  //       }).catch(console.log.bind(console));
-  //     }
-  //
-  //     return fetcher(this.props).fetchDataExec(info);
-  //   }
-  // }, {
     key: 'fetcher',
     get: function () {
       return {
