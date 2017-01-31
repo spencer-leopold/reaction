@@ -44,7 +44,7 @@ RestAdapter.prototype.request = function(req, callback) {
     }
 
     end = new Date().getTime();
-    debug("api request finished in %s seconds", (end - start) / 1000);
+    debug("api request finished in %s seconds with status code: %s", (end - start) / 1000, request.statusCode);
     return callback(null, body);
   });
 }
