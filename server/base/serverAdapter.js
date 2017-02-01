@@ -1,10 +1,6 @@
-//
-// @todo: Need a way to add middleware that adds
-// onto reactionData object.
-//
-// @todo: Need a better way to match routes
-// (or at least use React-Routers match functionality)
-//
+// @TODO: Need a way to add middleware that adds onto reactionData object.
+// @TODO: Need a better way to match routes (or at least use React-Routers
+// match functionality)
 
 var React = require('react');
 var ReactRouter = require('react-router');
@@ -16,7 +12,7 @@ var debug = require('debug')('reaction');
 var _ = require('../../shared/lodash.custom');
 
 function BaseAdapter(options, server) {
-  // @todo: Add some error checking for options
+  // @TODO: Add some error checking for options
   this.options = options || {};
   this.server = server;
   this.serverRoutes = [];
