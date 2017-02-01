@@ -4,12 +4,12 @@
 
 var React = require('react');
 var ReactRouter = require('react-router');
-var ReactionFetcher = require('../../shared/fetcher');
-var DataManager = require('../../shared/components/DataManager');
-var Router = require('../../shared/router');
+var ReactionFetcher = require('../shared/fetcher');
+var DataManager = require('../shared/components/DataManager');
+var Router = require('../shared/router');
 var qs = require('qs2');
 var debug = require('debug')('reaction');
-var _ = require('../../shared/lodash.custom');
+var _ = require('../shared/lodash.custom');
 
 /**
  * Constructor.
