@@ -38,7 +38,7 @@ function BaseServerAdapter(options, server) {
 
   if (this.options.api) {
     if (!this.options.dataAdapter) {
-      this.options.dataAdapter = require('./DataAdapters/RestAdapter');
+      this.options.dataAdapter = require('./DataAdapter/RestAdapter');
     }
 
     var dataAdapter = new this.options.dataAdapter(options.api);
