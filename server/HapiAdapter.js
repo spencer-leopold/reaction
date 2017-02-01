@@ -1,4 +1,4 @@
-var BaseServerAdapter = require('./base/serverAdapter');
+var BaseServerAdapter = require('./BaseServerAdapter');
 var util = require('util');
 
 /**
@@ -6,7 +6,7 @@ var util = require('util');
  *
  * @class
  * @classdesc Adapter to use Reaction with Hapi as the server.
- * @augments BaseAdapter
+ * @augments BaseServerAdapter
  * @inheritdoc
  */
 function HapiAdapter(options, server) {
@@ -14,7 +14,7 @@ function HapiAdapter(options, server) {
   return server;
 }
 
-// Extend the BaseAdapter class.
+// Extend the BaseServerAdapter class.
 util.inherits(HapiAdapter, BaseServerAdapter);
 
 /**

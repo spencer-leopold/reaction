@@ -20,7 +20,7 @@ var _ = require('../../shared/lodash.custom');
  * @param {Object} options - The app's configuration.
  * @param {Object} server - An instance of the server being used.
  */
-function BaseAdapter(options, server) {
+function BaseServerAdapter(options, server) {
   // @TODO: Add some error checking for options
   this.options = options || {};
   this.server = server;
@@ -58,7 +58,7 @@ function BaseAdapter(options, server) {
  * @param {Object} component - The component associated with the route.
  * @param {Object} mainComponent - The main/parent component for the route.
  */
-BaseAdapter.prototype.parseRoute = function(event, options, component, mainComponent) {
+BaseServerAdapter.prototype.parseRoute = function(event, options, component, mainComponent) {
   var path = '', handler;
   options = options || {};
 
@@ -84,7 +84,7 @@ BaseAdapter.prototype.parseRoute = function(event, options, component, mainCompo
  * @param {Object} options - The route options.
  * @returns {Function} - The server-side route handler function.
  */
-BaseAdapter.prototype.buildHandler = function(options) {
+BaseServerAdapter.prototype.buildHandler = function(options) {
   var handler;
   var handleResponse = this.handleResponse;
   var handleNext = this.handleNext;
@@ -174,7 +174,7 @@ BaseAdapter.prototype.buildHandler = function(options) {
  * @returns {Promise.<Object>} - An object containing the rendered React app
  *   and the current app-level props.
  */
-BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
+BaseServerAdapter.prototype.renderReactApp = function(req, options, routes) {
   var path;
   var fetcher = ReactionFetcher(options);
   var clientRoutes = routes;
@@ -271,7 +271,7 @@ BaseAdapter.prototype.renderReactApp = function(req, options, routes) {
  *
  * @returns {Function} - The function that renders the error page.
  */
-BaseAdapter.prototype.errorHandler = function() {
+BaseServerAdapter.prototype.errorHandler = function() {
   var templatesDir = this.router.options.paths.templatesDir;
   var template = false;
 
@@ -299,7 +299,7 @@ BaseAdapter.prototype.errorHandler = function() {
 /**
  * Event handler that runs once all routes are processed.
  */
-BaseAdapter.prototype.onRoutesFinished = function() {
+BaseServerAdapter.prototype.onRoutesFinished = function() {
   var route, handler, routes = this.serverRoutes;
 
   for (var i in routes) {
@@ -321,7 +321,7 @@ BaseAdapter.prototype.onRoutesFinished = function() {
  * @param {Object} route - The route.
  * @param {Function} handler - The request handler.
  */
-BaseAdapter.prototype.addRoute = function(route, handler) {
+BaseServerAdapter.prototype.addRoute = function(route, handler) {
   throw new Error('`addRoute` needs to be implemented');
 }
 
@@ -333,7 +333,7 @@ BaseAdapter.prototype.addRoute = function(route, handler) {
  * @param {Object} res - The response.
  * @param {Object|Array|String} body - The response body.
  */
-BaseAdapter.prototype.handleResponse = function(req, res, body) {
+BaseServerAdapter.prototype.handleResponse = function(req, res, body) {
   throw new Error('`handleResponse` needs to be implemented');
 }
 
@@ -345,7 +345,7 @@ BaseAdapter.prototype.handleResponse = function(req, res, body) {
  * @param {Object} res - The response.
  * @param {Function} next - The next callback.
  */
-BaseAdapter.prototype.handleNext = function(req, res, next) {
+BaseServerAdapter.prototype.handleNext = function(req, res, next) {
   throw new Error('`handleNext` needs to be implemented');
 }
 
@@ -362,7 +362,7 @@ BaseAdapter.prototype.handleNext = function(req, res, next) {
  * @abstract
  * @param {errorTemplateCb} cb - The callback that renders an error template.
  */
-BaseAdapter.prototype.attachErrorHandler = function(cb) {
+BaseServerAdapter.prototype.attachErrorHandler = function(cb) {
   throw new Error('`attachErrorHandler` needs to be implemented');
 }
 
@@ -372,7 +372,7 @@ BaseAdapter.prototype.attachErrorHandler = function(cb) {
  * @abstract
  * @param {Object} options - The Reaction configuration options.
  */
-BaseAdapter.prototype.attachApiProxy = function(options) {
+BaseServerAdapter.prototype.attachApiProxy = function(options) {
   throw new Error('`attachApiProxy` needs to be implemented');
 }
 
@@ -385,8 +385,8 @@ BaseAdapter.prototype.attachApiProxy = function(options) {
  *
  * @param {String} path - The request path.
  */
-BaseAdapter.prototype.formatParams = function(path) {
+BaseServerAdapter.prototype.formatParams = function(path) {
   return path;
 }
 
-module.exports = BaseAdapter;
+module.exports = BaseServerAdapter;

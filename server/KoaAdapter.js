@@ -1,5 +1,5 @@
 var _route, _mount;
-var BaseServerAdapter = require('./base/serverAdapter');
+var BaseServerAdapter = require('./BaseServerAdapter');
 var util = require('util');
 
 // We don't want to make koa-route and koa-mount required dependencies since
@@ -27,7 +27,7 @@ catch (e) {
  *
  * @class
  * @classdesc Adapter to use Reaction with Koa as the server.
- * @augments BaseAdapter
+ * @augments BaseServerAdapter
  * @inheritdoc
  */
 function KoaAdapter(options, server) {
@@ -35,7 +35,7 @@ function KoaAdapter(options, server) {
   return server;
 }
 
-// Extend the BaseAdapter class.
+// Extend the BaseServerAdapter class.
 util.inherits(KoaAdapter, BaseServerAdapter);
 
 /**

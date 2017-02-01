@@ -2,7 +2,6 @@ var React = require('react');
 var ReactRouter = require('react-router');
 var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
-
 var ReactionRouter = require('./shared/router');
 var Fetcher = require('./shared/fetcher');
 var Component = require('./shared/components/Component');
@@ -54,26 +53,26 @@ exports.Router = function(options) {
 exports.attachApp = function(options, server) {
   var ServerAdapter;
 
-  // Use variables to require adapter modules in order
-  // to hide them from requirejs
+  // Use variables to require adapter modules in order to hide them from
+  // requirejs.
   if (options.serverAdapter) {
     ServerAdapter = options.serverAdapter;
   }
   else {
     if (server.inspect && typeof server.inspect === 'function') {
-      var koaAdapter = './server/koaAdapter';
+      var koaAdapter = './server/KoaAdapter';
       ServerAdapter = require(koaAdapter);
     }
     else if (server.response) {
-      var expressAdapter = './server/expressAdapter';
+      var expressAdapter = './server/ExpressAdapter';
       ServerAdapter = require(expressAdapter);
     }
     else if (server.formatters) {
-      var restifyAdapter = './server/restifyAdapter';
+      var restifyAdapter = './server/RestifyAdapter';
       ServerAdapter = require(restifyAdapter);
     }
     else {
-      var hapiAdapter = './server/hapiAdapter';
+      var hapiAdapter = './server/HapiAdapter';
       ServerAdapter = require(hapiAdapter);
     }
   }
@@ -81,9 +80,7 @@ exports.attachApp = function(options, server) {
   return new ServerAdapter(options, server);
 }
 
-//
-// Startup for frontend
-//
+// Startup for frontend.
 exports.initApp = function(props, el) {
   if (!el) {
     el = '.react-app';

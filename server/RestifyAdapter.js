@@ -1,4 +1,4 @@
-var BaseServerAdapter = require('./base/serverAdapter');
+var BaseServerAdapter = require('./BaseServerAdapter');
 var util = require('util');
 
 /**
@@ -6,7 +6,7 @@ var util = require('util');
  *
  * @class
  * @classdesc Adapter to use Reaction with Restify as the server.
- * @augments BaseAdapter
+ * @augments BaseServerAdapter
  * @inheritdoc
  */
 function RestifyAdapter(options, server) {
@@ -14,7 +14,7 @@ function RestifyAdapter(options, server) {
   return server;
 }
 
-// Extend the BaseAdapter class.
+// Extend the BaseServerAdapter class.
 util.inherits(RestifyAdapter, BaseServerAdapter);
 
 /**
