@@ -1,11 +1,8 @@
-//
-// @todo: Add support for data parsers.
-//
-// @todo: Make sure if data is already
-// available with initial page load,
-// we don't make another request
-// after page loads.
-//
+// @TODO: Add better way of knowing whether fetcher should hit proxy or endpoint
+//   directly.
+// @TODO: Add support for data parsers.
+// @TODO: Make sure if data is already available with initial page load we don't
+// make another request after page loads.
 var Promise = require('when');
 var Request = require('superagent');
 var MemoryStore = require('./memory_store');
