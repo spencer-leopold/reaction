@@ -9,13 +9,18 @@ function RestAdapter(options) {
 
 RestAdapter.prototype.request = function(req, callback) {
   var requestUrl = this.processUrl(req);
+  var headers = req.headers;
+  if (!headers['user-agent']) {
+    headers['user-agent'] = 'ReactionApp';
+  }
+
+  // Remove host so request doesn't fail if it's on a different domain.
+  delete headers['host'];
 
   var api = {
     url: requestUrl,
     method: req.method || 'get',
-    headers: {
-      'User-Agent': 'ReactionApp'
-    },
+    headers: headers,
     json: req.body || req.payload || {},
     params: req.params || {}
   };
@@ -26,7 +31,7 @@ RestAdapter.prototype.request = function(req, callback) {
 
   debug("RestAdapter request: %s from %s", api.method.toUpperCase(), api.url);
 
-  var start = new Date().getTime(), end;
+  var end, start = new Date().getTime();
   request(api, function (err, response, body) {
     if (err) {
       return callback(null, err);
@@ -69,15 +74,13 @@ RestAdapter.prototype.processUrl = function(req) {
   var apiConfig = this.options[api] || this.options['default'] || this.options;
 
   // @TODO: TEST THIS HEAVILY
-  // if we don't have an endPoint that means an absolute
-  // path to the API was used, so we need to diff the
-  // url and the apiPrefix to figure out the correct
-  // path to API Endpoint, since some servers strip
-  // the mountPath from the url.
-  // (e.g /api/1.0/users would come through as /1.0/users)
+  // if we don't have an endPoint that means an absolute path to the API was
+  // used, so we need to diff the url and the apiPrefix to figure out the
+  // correct path to API Endpoint, since some servers strip the mountPath from
+  // the url (e.g /api/1.0/users would come through as /1.0/users).
   if (apiConfig && apiConfig.apiPrefix && !endPoint) {
-    // strip leading slash from url so the diff
-    // preserves the apiPrefixes leading slash
+    // strip leading slash from url so the diff preserves the apiPrefixes
+    // leading slash
     if (url.charAt(0) === '/') {
       url = url.substr(1);
     }
