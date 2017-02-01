@@ -74,13 +74,13 @@ RestAdapter.prototype.processUrl = function(req) {
   var apiConfig = this.options[api] || this.options['default'] || this.options;
 
   // @TODO: TEST THIS HEAVILY
-  // if we don't have an endPoint that means an absolute path to the API was
-  // used, so we need to diff the url and the apiPrefix to figure out the
-  // correct path to API Endpoint, since some servers strip the mountPath from
-  // the url (e.g /api/1.0/users would come through as /1.0/users).
+  // If we don't have an endPoint that means an absolute path to the API was
+  // used. We need to diff the url and the apiPrefix to figure out the correct
+  // path to the API endpoint since some servers strip the mountPath from the
+  // url (e.g /api/1.0/users would come through as /1.0/users).
   if (apiConfig && apiConfig.apiPrefix && !endPoint) {
-    // strip leading slash from url so the diff preserves the apiPrefixes
-    // leading slash
+    // Strip leading slash from url so the diff preserves the apiPrefix leading
+    // slash.
     if (url.charAt(0) === '/') {
       url = url.substr(1);
     }
