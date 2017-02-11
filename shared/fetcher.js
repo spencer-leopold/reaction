@@ -68,6 +68,8 @@ ComponentFetcher.prototype.thunkExecute = function(thunk) {
 ComponentFetcher.prototype.fetchDataExec = function(info, data, component) {
   var name, returnObj, force = false;
 
+  // If the data argument is present, we've already started building the page
+  // and we're within a child component/route.
   if (typeof data !== 'undefined') {
     name = component.name;
   }
@@ -77,14 +79,16 @@ ComponentFetcher.prototype.fetchDataExec = function(info, data, component) {
     force = true;
   }
 
-  // If we're on the client, just resolve
-  // and fetch after component renders.
+  // If we're on the client and not forcing, just resolve and fetch after
+  // the component renders. This is only really the case if prefetch components
+  // are used. Prefetch components are really only a thing for server-side
+  // rendering, so that the markup can be fully built before the page loads. On
+  // the client-side we're not worried when the page is fully built.
   if (!force && isClient) {
     return Promise.resolve(data);
   }
 
-  // if info is a Promise, execute if and 
-  // set data to the passed in param
+  // Perform the fetch.
   if (!!info.then && typeof info.then === 'function') {
     return info.then(function(d) {
       return data[name] = d;
