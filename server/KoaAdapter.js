@@ -1,3 +1,5 @@
+// @TODO: Add route caching.
+// @TODO: Add API caching.
 var _route, _mount;
 var BaseServerAdapter = require('./BaseServerAdapter');
 var util = require('util');
