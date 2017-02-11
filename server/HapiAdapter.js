@@ -46,10 +46,30 @@ HapiAdapter.prototype.handleNext = function(req, reply) {
  * @inheritdoc
  */
 HapiAdapter.prototype.addRoute = function(route, handler) {
+  var config = {};
+  var cache = route.options.cache;
+
+  if (cache) {
+    if (typeof cache === 'object') {
+      config.cache = cache;
+    }
+    else if (typeof cache === 'number') {
+      config.cache = {
+        expiresIn: cache
+      };
+    }
+    else {
+      config.cache = {
+        expiresIn: 60 * minute
+      };
+    }
+  }
+
   this.server.route({
     method: 'GET',
     path: route.path,
-    handler: handler
+    handler: handler,
+    config: config
   });
 }
 
