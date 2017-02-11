@@ -349,6 +349,19 @@ ComponentFetcher.prototype.handleRequest = function(method, url, dataType, data,
     return Promise.resolve(memoryStore.get(cacheUrl));
   }
 
+  // If cache is explicitly set to false, add a timestamp to prevent caching.
+  if (typeof cacheResponse === 'boolean' && !cacheResponse) {
+    var queryChar;
+    var timestamp = Date.now();
+    if (~url.indexOf('?')) {
+      queryChar = '&';
+    }
+    else {
+      queryChar = '?';
+    }
+    url += queryChar + '_=' + timestamp;
+  }
+
   return Promise.promise(function(resolve, reject) {
     var request = Request[method](url);
 
